@@ -1,6 +1,6 @@
-# Codenotch Phone Link — protocol v2
+# Ai-Manager Phone Link — protocol v2
 
-The contract between desktop Codenotch (macOS, Swift) and the Codenotch phone
+The contract between desktop Ai-Manager (macOS, Swift) and the Ai-Manager phone
 app (Expo). Both sides implement exactly this. When the two disagree, this file
 wins. Test vectors at the end are mandatory on both sides.
 
@@ -13,7 +13,7 @@ not be replayable; a screenshot of an old QR code must be useless.
 ## 1. The pairing link (what the QR code encodes, and what "Copy Link" copies)
 
 ```
-codenotch://pair?v=2&h=<host1>,<host2>,...&p=<port>&c=<code>&n=<mac name>
+ai-manager://pair?v=2&h=<host1>,<host2>,...&p=<port>&c=<code>&n=<mac name>
 ```
 
 | Param | Meaning |
@@ -28,9 +28,9 @@ Encode every value with RFC 3986 percent-encoding (the commas in `h` may stay
 literal). Order of params is not significant.
 
 The phone must also accept:
-- `exp+codenotch://pair?...` (Expo Go rewrites the scheme),
+- `exp+ai-manager://pair?...` (Expo Go rewrites the scheme),
 - the link embedded in surrounding text (e.g. pasted from Messages),
-- the legacy Python-agent string `codenotch://<host>:<port>/<64-hex secret>` (v1, see §6).
+- the legacy Python-agent string `ai-manager://<host>:<port>/<64-hex secret>` (v1, see §6).
 
 ### Code lifecycle (Mac)
 
@@ -103,7 +103,7 @@ Bad signature → `401 {"error":"bad-signature"}`. Clock skew →
 Rate limit (120/min per IP) → `429 {"error":"rate-limited"}`.
 
 Unauthenticated:
-- `GET /health` → `200 {"ok":true,"app":"codenotch","api":2,"version":"1.9.0"}` (private-network gate still applies).
+- `GET /health` → `200 {"ok":true,"app":"ai-manager","api":2,"version":"1.9.0"}` (private-network gate still applies).
 
 All responses are `application/json`, `Connection: close` is acceptable.
 
@@ -122,7 +122,7 @@ Exactly the phone's `src/lib/types.ts` `Snapshot`:
                    "remaining": null, "used": null, "resetsAt": "2026-09-11T20:07:00Z"}],
       "headlineId": "session",
       "block": null,
-      "account": {"plan": "max", "source": "Codenotch"}
+      "account": {"plan": "max", "source": "Ai-Manager"}
     }
   ],
   "sessions": [
@@ -168,6 +168,6 @@ signature     = e3e36469c8001024f222c9c1042b575e5653361dbc38de2227de717975031e6c
 ts=1757600000 nonce=n-test2 GET /api/v1/snapshot  body="" key=deviceSecret
 signature     = eabdc2cf6ddb995110487fea5b42585f2e137bd80260406dffabb476df0c8c3d
 
-link: codenotch://pair?v=2&h=192.168.1.20,Mac.local&p=8788&c=00112233445566778899aabbccddeeff&n=Sam%27s%20MacBook%20Pro
+link: ai-manager://pair?v=2&h=192.168.1.20,Mac.local&p=8788&c=00112233445566778899aabbccddeeff&n=Sam%27s%20MacBook%20Pro
   → hosts ["192.168.1.20","Mac.local"], port 8788, code 00112233…eeff, name "Sam's MacBook Pro"
 ```

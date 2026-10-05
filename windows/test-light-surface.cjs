@@ -7,12 +7,12 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
 const root = __dirname;
-const notch = readFileSync(join(root, 'codenotch/ui/notch.html'), 'utf8');
-const settings = readFileSync(join(root, 'codenotch/ui/settings.html'), 'utf8');
-const main = readFileSync(join(root, 'codenotch/src/main.rs'), 'utf8');
-const settingsWindow = readFileSync(join(root, 'codenotch/src/settings_window.rs'), 'utf8');
-const carry = readFileSync(join(root, 'codenotch/ui/carry.html'), 'utf8');
-const carryWindow = readFileSync(join(root, 'codenotch/src/carry.rs'), 'utf8');
+const notch = readFileSync(join(root, 'ai-manager/ui/notch.html'), 'utf8');
+const settings = readFileSync(join(root, 'ai-manager/ui/settings.html'), 'utf8');
+const main = readFileSync(join(root, 'ai-manager/src/main.rs'), 'utf8');
+const settingsWindow = readFileSync(join(root, 'ai-manager/src/settings_window.rs'), 'utf8');
+const carry = readFileSync(join(root, 'ai-manager/ui/carry.html'), 'utf8');
+const carryWindow = readFileSync(join(root, 'ai-manager/src/carry.rs'), 'utf8');
 
 function cssBlock(source, selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

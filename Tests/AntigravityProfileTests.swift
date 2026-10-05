@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 final class AntigravityProfileTests: XCTestCase {
     private func home(_ layout: [String: [String]] = [:]) throws -> URL {

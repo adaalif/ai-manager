@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 final class GitHubCopilotUsageTests: XCTestCase {
     func testReadsCopilotQuotas() throws {

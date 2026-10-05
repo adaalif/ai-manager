@@ -3,8 +3,8 @@ import SwiftUI
 struct NotchRootView: View {
     @ObservedObject var model: NotchViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
-    @Environment(\.codenotchHeadlessGlass) private var headlessGlass
+    @Environment(\.aiManagerReduceTransparency) private var reduceTransparency
+    @Environment(\.aiManagerHeadlessGlass) private var headlessGlass
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -193,7 +193,7 @@ struct NotchRootView: View {
         }
         .animation(motion(NotchMotion.unfold), value: model.isExpanded)
         .tint(model.accentColor.color)
-        .environment(\.codenotchAccentColor, model.accentColor.color)
+        .environment(\.aiManagerAccentColor, model.accentColor.color)
         .environment(\.notchSurfaceStyle, model.surfaceStyle)
         .environment(\.tooltipSecondaryInk, TooltipGlassContrast.secondaryInk(
             surfaceStyle: model.surfaceStyle,

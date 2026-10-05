@@ -1,6 +1,6 @@
 import SQLite3
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 final class CodexUsageTests: XCTestCase {
     private func windows(_ json: String) throws -> [LimitWindow] {
@@ -485,7 +485,7 @@ final class CodexActivityTests: XCTestCase {
 
     private func rollout(_ records: [String]) throws -> URL {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CodenotchCodexRollout-\(UUID().uuidString).jsonl")
+            .appendingPathComponent("AiManagerCodexRollout-\(UUID().uuidString).jsonl")
         try records.joined(separator: "\n").data(using: .utf8)!.write(to: url)
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
@@ -522,7 +522,7 @@ final class CodexActivityTests: XCTestCase {
 
     private func rollout(data: Data) throws -> URL {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CodenotchCodexRollout-\(UUID().uuidString).jsonl")
+            .appendingPathComponent("AiManagerCodexRollout-\(UUID().uuidString).jsonl")
         try data.write(to: url)
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
@@ -750,7 +750,7 @@ final class CodexStoreCacheTests: XCTestCase {
 
     override func setUpWithError() throws {
         dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CodenotchStoreCache-\(UUID().uuidString)")
+            .appendingPathComponent("AiManagerStoreCache-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     }
 
@@ -1399,7 +1399,7 @@ final class CodexConversationTests: XCTestCase {
             }
             try exec(url, """
                 INSERT INTO threads VALUES ('\(row.id)', '\(rollout.path)', 0, \(row.updatedMs),
-                    \(quoted(row.name)), \(quoted(row.preview)), NULL, '/Users/vinz/app',
+                    \(quoted(row.name)), \(quoted(row.preview)), NULL, '/Users/someone/app',
                     '\(source)')
                 """)
         }

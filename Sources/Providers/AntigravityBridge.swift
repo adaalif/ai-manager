@@ -6,7 +6,7 @@ import os
 ///
 /// Google refuses us: `retrieveUserQuotaSummary` on `cloudcode-pa` answers 403
 /// "You do not have a valid license of this product" for a personal account,
-/// because the API judges *which client* is asking and Codenotch cannot
+/// because the API judges *which client* is asking and Ai-Manager cannot
 /// honestly claim to be Antigravity. Antigravity's window has the same problem
 /// and solves it the same way — it never calls Google for this either. It calls
 /// the language server running on this machine, which already holds the
@@ -255,7 +255,7 @@ enum AntigravityBridge {
         }
     }
 
-    /// A server Codenotch owns, or nil until one is needed.
+    /// A server Ai-Manager owns, or nil until one is needed.
     static let owned = Owned()
 
     /// The same flags the IDE passes its own server, minus everything that wires
@@ -270,7 +270,7 @@ enum AntigravityBridge {
     /// answer needs no project or conversation state, and sharing the IDE's
     /// would put two writers on its SQLite files if the IDE is launched while
     /// this one is still up.
-    static func arguments(token: String, appDataDir: String = "codenotch-bridge") -> [String] {
+    static func arguments(token: String, appDataDir: String = "ai-manager-bridge") -> [String] {
         [
             "--standalone",
             "--override_ide_name", "antigravity",

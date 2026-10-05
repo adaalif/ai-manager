@@ -1,4 +1,4 @@
-# Codenotch Phone Link — protocol v3
+# Ai-Manager Phone Link — protocol v3
 
 **Status:** contract for implementation. Both the Mac server and the phone client
 build against this document. Where this document and existing code disagree,
@@ -37,7 +37,7 @@ Re-pairing costs the user one QR scan.
 - `/health` advertises `"api": 3`. The phone refuses to pair against `api < 3`
   with "Your Mac app is out of date".
 
-The v1 path (the standalone `agent/codenotch_agent.py`, static secret, plaintext)
+The v1 path (the standalone `agent/ai_manager_agent.py`, static secret, plaintext)
 stays in the phone client for now and is **out of scope for this round**. The
 phone must show a persistent "Unencrypted (legacy agent)" indicator whenever a
 v1 connection is active.
@@ -59,10 +59,10 @@ S = HMAC-SHA256(key = hexdecode(C), msg = "codenotch-device-v3:" + deviceId)   /
 Per-purpose keys, HKDF-SHA256 (RFC 5869), zero-length salt, L = 32:
 
 ```
-K_sig      = HKDF(IKM = S,           info = "codenotch/v3/sig")
-K_enc      = HKDF(IKM = S,           info = "codenotch/v3/enc")
-K_pair_sig = HKDF(IKM = hexdecode(C), info = "codenotch/v3/pair-sig")
-K_pair_enc = HKDF(IKM = hexdecode(C), info = "codenotch/v3/pair-enc")
+K_sig      = HKDF(IKM = S,           info = "ai-manager/v3/sig")
+K_enc      = HKDF(IKM = S,           info = "ai-manager/v3/enc")
+K_pair_sig = HKDF(IKM = hexdecode(C), info = "ai-manager/v3/pair-sig")
+K_pair_enc = HKDF(IKM = hexdecode(C), info = "ai-manager/v3/pair-enc")
 ```
 
 One key, one purpose. Do not sign and encrypt with the same key.
@@ -169,7 +169,7 @@ it cannot enable a replay.
 
 | Endpoint | Auth | Body |
 |---|---|---|
-| `GET /health` | none | plaintext JSON, `{"ok":true,"app":"codenotch","api":3,"version":"x.y.z"}` |
+| `GET /health` | none | plaintext JSON, `{"ok":true,"app":"ai-manager","api":3,"version":"x.y.z"}` |
 | `POST /api/v3/pair` | `K_pair_sig` + window open | encrypted under `K_pair_enc` |
 | `GET /api/v3/snapshot` | `K_sig` | encrypted under `K_enc` |
 | `POST /api/v3/refresh` | `K_sig` | encrypted under `K_enc` |

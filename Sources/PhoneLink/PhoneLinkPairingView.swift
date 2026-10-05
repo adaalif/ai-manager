@@ -21,7 +21,7 @@ struct PhoneLinkPairingView: View {
         let name = PhoneLinkNetwork.getComputerName()
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_.~"))
         let encodedName = name.addingPercentEncoding(withAllowedCharacters: allowed) ?? name
-        return "codenotch://pair?v=3&h=\(hosts)&p=\(String(advertisedPort))&c=\(pairing.currentCode ?? "")&n=\(encodedName)"
+        return "ai-manager://pair?v=3&h=\(hosts)&p=\(String(advertisedPort))&c=\(pairing.currentCode ?? "")&n=\(encodedName)"
     }
     
     var body: some View {
@@ -73,7 +73,7 @@ struct PhoneLinkPairingView: View {
                 } else {
                     Text(L10n.t("Connect your phone"))
                         .font(.headline)
-                    Text(L10n.t("Scan this code with the Codenotch app on your phone."))
+                    Text(L10n.t("Scan this code with the Ai-Manager app on your phone."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -114,7 +114,7 @@ struct PhoneLinkPairingView: View {
                     .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(L10n.t("1. Open Codenotch on your phone"))
+                        Text(L10n.t("1. Open Ai-Manager on your phone"))
                         Text(L10n.t("2. Tap Scan QR Code"))
                         Text(L10n.t("3. Point your phone at this code"))
                     }

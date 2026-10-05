@@ -1,6 +1,6 @@
 import XCTest
 import AppKit
-@testable import Codenotch
+@testable import AiManager
 
 /// What the menu bar item says in place of its icon: each five-hour window as
 /// its provider's mark, the share spent, and the time until it resets.
@@ -727,7 +727,7 @@ final class StatusItemSummaryTests: XCTestCase {
     /// Opt-in visual QA fixture. The status artwork is drawn at four times its
     /// menu-bar dimensions so a reviewer can inspect its actual vector output.
     func testRenderWeeklyRingContactSheetWhenRequested() throws {
-        guard let path = ProcessInfo.processInfo.environment["CODENOTCH_WEEKLY_RENDER"] else { return }
+        guard let path = ProcessInfo.processInfo.environment["AI_MANAGER_WEEKLY_RENDER"] else { return }
         let levels: [(String, Double)] = [
             ("0%", 0), ("3%", 0.03), ("50%", 0.5), ("87%", 0.87), ("100%", 1),
         ]

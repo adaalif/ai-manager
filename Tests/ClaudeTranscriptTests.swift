@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 /// The state machine that reads a session's transcript.
 ///
@@ -15,13 +15,13 @@ final class ClaudeTranscriptTests: XCTestCase {
     // MARK: - Where the file is
 
     func testSlugReplacesSeparatorsAndDots() {
-        XCTAssertEqual(ClaudeTranscript.projectSlug(forCWD: "/Users/vinz/notch-app"),
-                       "-Users-vinz-notch-app")
+        XCTAssertEqual(ClaudeTranscript.projectSlug(forCWD: "/Users/someone/notch-app"),
+                       "-Users-someone-notch-app")
         // A worktree under a dot directory: both characters collapse, and the
         // run of two dashes is what the real directory names look like.
         XCTAssertEqual(
-            ClaudeTranscript.projectSlug(forCWD: "/Users/vinz/app/.claude/worktrees/x"),
-            "-Users-vinz-app--claude-worktrees-x"
+            ClaudeTranscript.projectSlug(forCWD: "/Users/someone/app/.claude/worktrees/x"),
+            "-Users-someone-app--claude-worktrees-x"
         )
     }
 
@@ -142,60 +142,60 @@ final class ClaudeTranscriptReaderTests: XCTestCase {
     private let done = #"{"type":"assistant","message":{"stop_reason":"end_turn"}}"# + "\n"
 
     func testReadsTheTranscriptUnderTheSlugForTheWorkingDirectory() throws {
-        try write(working, folder: "-Users-vinz-app", session: "abc")
+        try write(working, folder: "-Users-someone-app", session: "abc")
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .inFlight)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .inFlight)
     }
 
     /// A session resumed somewhere else keeps its transcript where it was first
     /// written, so the slug no longer names it.
     func testFindsATranscriptThatIsNotUnderItsOwnSlug() throws {
-        try write(done, folder: "-Users-vinz-elsewhere", session: "abc")
+        try write(done, folder: "-Users-someone-elsewhere", session: "abc")
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .finished)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .finished)
     }
 
     func testSaysNothingWhenThereIsNoTranscript() {
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertNil(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app"))
+        XCTAssertNil(reader.activity(sessionID: "abc", cwd: "/Users/someone/app"))
     }
 
     /// `since` is when the turn last moved, which is what the tooltip counts
     /// from — not the moment the notch happened to look.
     func testReportsWhenTheTranscriptLastMoved() throws {
-        let url = try write(working, folder: "-Users-vinz-app", session: "abc")
+        let url = try write(working, folder: "-Users-someone-app", session: "abc")
         let when = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes([.modificationDate: when], ofItemAtPath: url.path)
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.since, when)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.since, when)
     }
 
     /// The whole point of the cache: a tick that finds the file unchanged must
     /// not read it again. Rewriting the body without touching the timestamps
     /// leaves the reader on its old answer.
     func testAnUnchangedFileIsNotReadTwice() throws {
-        let url = try write(working, folder: "-Users-vinz-app", session: "abc")
+        let url = try write(working, folder: "-Users-someone-app", session: "abc")
         // Pinned to the same whole second on both sides, so the only thing this
         // can be measuring is the cache.
         let frozen = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes([.modificationDate: frozen], ofItemAtPath: url.path)
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .inFlight)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .inFlight)
 
         // Same length as well, so neither size nor date moves.
         XCTAssertEqual(working.utf8.count, done.utf8.count)
         try Data(done.utf8).write(to: url)
         try FileManager.default.setAttributes([.modificationDate: frozen], ofItemAtPath: url.path)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .inFlight)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .inFlight)
     }
 
     func testRereadsOnceTheFileHasGrown() throws {
-        let url = try write(working, folder: "-Users-vinz-app", session: "abc")
+        let url = try write(working, folder: "-Users-someone-app", session: "abc")
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .inFlight)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .inFlight)
 
         try Data((working + done).utf8).write(to: url)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.turn, .finished)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.turn, .finished)
     }
 }
 
@@ -205,32 +205,32 @@ final class ClaudeTranscriptReaderTests: XCTestCase {
 /// two seconds while nothing visible had changed.
 extension ClaudeTranscriptReaderTests {
     func testTheStartOfTheStateIsHeldWhileItLasts() throws {
-        let url = try write(working, folder: "-Users-vinz-app", session: "abc")
+        let url = try write(working, folder: "-Users-someone-app", session: "abc")
         let started = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes([.modificationDate: started],
                                               ofItemAtPath: url.path)
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.since, started)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.since, started)
 
         // The turn goes on: more records, a newer timestamp, same state.
         try Data((working + working).utf8).write(to: url)
         try FileManager.default.setAttributes([.modificationDate: started.addingTimeInterval(30)],
                                               ofItemAtPath: url.path)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.since, started)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.since, started)
     }
 
     func testTheStartMovesWhenTheStateDoes() throws {
-        let url = try write(working, folder: "-Users-vinz-app", session: "abc")
+        let url = try write(working, folder: "-Users-someone-app", session: "abc")
         let started = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes([.modificationDate: started],
                                               ofItemAtPath: url.path)
         let reader = ClaudeTranscriptReader(projects: projects)
-        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")?.since, started)
+        XCTAssertEqual(reader.activity(sessionID: "abc", cwd: "/Users/someone/app")?.since, started)
 
         let ended = started.addingTimeInterval(120)
         try Data((working + done).utf8).write(to: url)
         try FileManager.default.setAttributes([.modificationDate: ended], ofItemAtPath: url.path)
-        let after = reader.activity(sessionID: "abc", cwd: "/Users/vinz/app")
+        let after = reader.activity(sessionID: "abc", cwd: "/Users/someone/app")
         XCTAssertEqual(after?.turn, .finished)
         XCTAssertEqual(after?.since, ended)
     }

@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 /// A second Claude Code login kept under `~/.claude-<slug>` is its own account,
 /// with its own token, its own limits and its own sessions. Reading only
@@ -33,7 +33,7 @@ final class ClaudeProfileTests: XCTestCase {
     /// The default keeps the id it has always had, so archived readings and
     /// connection choices survive the update.
     func testTheDefaultProfileIsUnchanged() throws {
-        // A home that cannot be anybody's. `/Users/vinz` was standing in for a
+        // A home that cannot be anybody's. `/Users/someone` was standing in for a
         // synthetic one, which it is on CI and is not on the machine this was
         // written on: once `displayName` began reading `.claude.json`, the test
         // started naming the developer's own account.
@@ -49,10 +49,10 @@ final class ClaudeProfileTests: XCTestCase {
 
     func testAProfileIsNamedAfterItsSlug() {
         let profile = ClaudeProfile(slug: "work",
-                                    configDirectory: URL(fileURLWithPath: "/Users/vinz/.claude-work"))
+                                    configDirectory: URL(fileURLWithPath: "/Users/someone/.claude-work"))
         XCTAssertEqual(profile.id, "claude-work")
         XCTAssertEqual(profile.displayName, "Claude (work)")
-        XCTAssertEqual(profile.sessionsDirectory.path, "/Users/vinz/.claude-work/sessions")
+        XCTAssertEqual(profile.sessionsDirectory.path, "/Users/someone/.claude-work/sessions")
     }
 
     /// Claude Code files a non-default profile's token under the service name
@@ -61,7 +61,7 @@ final class ClaudeProfileTests: XCTestCase {
     /// signed in.
     func testTheKeychainServiceCarriesClaudeCodesHashOfThePath() {
         let profile = ClaudeProfile(slug: "work",
-                                    configDirectory: URL(fileURLWithPath: "/Users/vinz/.claude-work"))
+                                    configDirectory: URL(fileURLWithPath: "/Users/someone/.claude-work"))
         // `shasum -a 256` of the path, no trailing slash, no newline.
         XCTAssertEqual(profile.keychainService, "Claude Code-credentials-19914660")
     }
@@ -70,7 +70,7 @@ final class ClaudeProfileTests: XCTestCase {
     /// a trailing slash.
     func testATrailingSlashDoesNotChangeTheHash() {
         let slashed = ClaudeProfile(slug: "work",
-                                    configDirectory: URL(fileURLWithPath: "/Users/vinz/.claude-work/"))
+                                    configDirectory: URL(fileURLWithPath: "/Users/someone/.claude-work/"))
         XCTAssertEqual(slashed.keychainService, "Claude Code-credentials-19914660")
     }
 
@@ -80,8 +80,8 @@ final class ClaudeProfileTests: XCTestCase {
     /// wins, bare kept so a legacy login still reads. Reading only the bare
     /// name is what left the ring stuck on "Waiting for the first reading…".
     func testTheDefaultProfileOffersBothTheSuffixedAndBareServices() {
-        let profile = ClaudeProfile.default(home: URL(fileURLWithPath: "/Users/vinz"))
-        // `shasum -a 256` of "/Users/vinz/.claude", first eight hex digits.
+        let profile = ClaudeProfile.default(home: URL(fileURLWithPath: "/Users/someone"))
+        // `shasum -a 256` of "/Users/someone/.claude", first eight hex digits.
         XCTAssertEqual(profile.keychainServices,
                        ["Claude Code-credentials-337ba600", "Claude Code-credentials"])
     }
@@ -90,7 +90,7 @@ final class ClaudeProfileTests: XCTestCase {
     /// one service — no bare fallback that could shadow another account.
     func testANamedProfileOffersOnlyItsSuffixedService() {
         let profile = ClaudeProfile(slug: "work",
-                                    configDirectory: URL(fileURLWithPath: "/Users/vinz/.claude-work"))
+                                    configDirectory: URL(fileURLWithPath: "/Users/someone/.claude-work"))
         XCTAssertEqual(profile.keychainServices, ["Claude Code-credentials-19914660"])
     }
 
@@ -237,7 +237,7 @@ final class ClaudeProfileTests: XCTestCase {
 
     /// Stands in for the keychain so the test below cannot reach it.
     ///
-    /// Two profiles on a fictional `/Users/vinz` still resolve to the *real*
+    /// Two profiles on a fictional `/Users/someone` still resolve to the *real*
     /// service name for the default one, so building them for real used to read
     /// the login keychain — and on a test host rebuilt with a fresh ad-hoc
     /// signature that means an authorization prompt, which hung the entire
@@ -415,7 +415,7 @@ final class ClaudeAccountNameTests: XCTestCase {
     func testTheDomainNamesTheAccount() {
         XCTAssertEqual(ClaudeProfile.accountLabel(forAddress: "someone@gmail.com"), "Gmail")
         XCTAssertEqual(ClaudeProfile.accountLabel(forAddress: "someone@hotmail.com"), "Hotmail")
-        XCTAssertEqual(ClaudeProfile.accountLabel(forAddress: "vinz@acme.co.uk"), "Acme")
+        XCTAssertEqual(ClaudeProfile.accountLabel(forAddress: "someone@acme.co.uk"), "Acme")
     }
 
     /// The local part is the same word on every account one person owns; the

@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-const html = readFileSync(join(__dirname, 'codenotch/ui/carry.html'), 'utf8');
+const html = readFileSync(join(__dirname, 'ai-manager/ui/carry.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
 function page() {
@@ -138,7 +138,7 @@ test('a part in the corner closes up square as the notch goes round, and not bef
 
 test('the notch and the drawing of it show the same settings end, frame for frame', () => {
   // They hand over at any moment of it, so a difference between the two copies is a jump on screen
-  const notch = readFileSync(join(__dirname, 'codenotch/ui/notch.html'), 'utf8');
+  const notch = readFileSync(join(__dirname, 'ai-manager/ui/notch.html'), 'utf8');
   const pick = (source, start, end) => {
     const a = source.indexOf(start);
     assert.ok(a >= 0, `missing ${start}`);

@@ -36,8 +36,8 @@ enum PhoneLinkCrypto {
         let material = SymmetricKey(data: secret)
         return DeviceKeys(
             secret: secret,
-            signature: derive(material, info: "codenotch/v3/sig"),
-            encryption: derive(material, info: "codenotch/v3/enc")
+            signature: derive(material, info: "ai-manager/v3/sig"),
+            encryption: derive(material, info: "ai-manager/v3/enc")
         )
     }
 
@@ -47,8 +47,8 @@ enum PhoneLinkCrypto {
         }
         let material = SymmetricKey(data: codeBytes)
         return PairingKeys(
-            signature: derive(material, info: "codenotch/v3/pair-sig"),
-            encryption: derive(material, info: "codenotch/v3/pair-enc")
+            signature: derive(material, info: "ai-manager/v3/pair-sig"),
+            encryption: derive(material, info: "ai-manager/v3/pair-enc")
         )
     }
 

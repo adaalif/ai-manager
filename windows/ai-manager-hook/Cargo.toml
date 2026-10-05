@@ -1,0 +1,9 @@
+[package]
+name = "ai-manager-hook"
+version = "0.3.0"
+edition = "2021"
+description = "Ai-Manager hook launcher: report Claude Code hook events, auto-start main app"
+license = "MIT"
+repository = "https://github.com/adaalif/ai-manager"
+
+[dependencies]

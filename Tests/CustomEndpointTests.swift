@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import Codenotch
+@testable import AiManager
 
 final class CustomEndpointTests: XCTestCase {
     func testCustomEndpointDefaultValues() {
@@ -414,7 +414,7 @@ final class CustomEndpointTests: XCTestCase {
         let renderer = ImageRenderer(content: NotchRootView(model: model)
             .frame(width: model.panelSize.width, height: model.panelSize.height)
             .environment(\.colorScheme, .dark)
-            .environment(\.codenotchHeadlessGlass, true))
+            .environment(\.aiManagerHeadlessGlass, true))
         renderer.scale = 2
         let image = try XCTUnwrap(renderer.cgImage)
         let png = try XCTUnwrap(NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]))

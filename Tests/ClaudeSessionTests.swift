@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 final class ClaudeSessionRecordTests: XCTestCase {
     private func record(_ json: String) -> ClaudeSessionRecord? {
@@ -12,7 +12,7 @@ final class ClaudeSessionRecordTests: XCTestCase {
     /// A real file, trimmed. Unknown keys must not cost us the session.
     func testDecodesALiveSession() throws {
         let s = try XCTUnwrap(session("""
-        { "pid": 2678, "sessionId": "c85d4247", "cwd": "/Users/vinz/usage-notch",
+        { "pid": 2678, "sessionId": "c85d4247", "cwd": "/Users/someone/usage-notch",
           "startedAt": 1787894126697, "procStart": "Fri Aug 28 05:15:20 2026",
           "kind": "interactive", "entrypoint": "cli", "name": "usage-notch-bc",
           "status": "busy", "statusUpdatedAt": 1787897225305,
@@ -50,7 +50,7 @@ final class ClaudeSessionRecordTests: XCTestCase {
 
     func testFallsBackToTheFolderWhenUnnamed() throws {
         XCTAssertEqual(try XCTUnwrap(session("""
-        { "pid": 1, "cwd": "/Users/vinz/notch-app", "status": "idle" }
+        { "pid": 1, "cwd": "/Users/someone/notch-app", "status": "idle" }
         """)).name, "notch-app")
     }
 
@@ -134,7 +134,7 @@ final class ClaudeSessionStateSourceTests: XCTestCase {
     /// tempo, no `statusUpdatedAt` — and the file is written once, when the
     /// session starts, so its own timestamp says nothing either.
     private let desktop = """
-    { "pid": 26440, "sessionId": "0b24b489", "cwd": "/Users/vinz/app",
+    { "pid": 26440, "sessionId": "0b24b489", "cwd": "/Users/someone/app",
       "startedAt": 1788731755247, "procStart": "Sun Sep  6 21:55:54 2026",
       "kind": "interactive", "entrypoint": "claude-desktop", "name": "app-6c",
       "messagingSocketPath": "/tmp/cc-socks/26440.sock" }
@@ -144,7 +144,7 @@ final class ClaudeSessionStateSourceTests: XCTestCase {
         let desktop = try record(desktop)
         XCTAssertFalse(desktop.reportsStatus)
         XCTAssertEqual(desktop.sessionID, "0b24b489")
-        XCTAssertEqual(desktop.cwd, "/Users/vinz/app")
+        XCTAssertEqual(desktop.cwd, "/Users/someone/app")
         XCTAssertEqual(desktop.session.detail, "Desktop · app")
 
         let terminal = try record(#"{ "pid": 1, "cwd": "/tmp/x", "status": "busy" }"#)
@@ -162,7 +162,7 @@ final class ClaudeSessionStateSourceTests: XCTestCase {
 
     func testADesktopSessionTakesItsStateFromTheTranscript() throws {
         try writeTranscript(#"{"type":"assistant","message":{"stop_reason":"tool_use"}}"#,
-                            session: "0b24b489", cwd: "/Users/vinz/app")
+                            session: "0b24b489", cwd: "/Users/someone/app")
         let session = ClaudeSessionMonitor.state(of: try record(desktop), transcripts: reader)
         XCTAssertEqual(session.state, .busy)
         XCTAssertEqual(session.id, "claude.26440")
@@ -170,7 +170,7 @@ final class ClaudeSessionStateSourceTests: XCTestCase {
 
     func testADesktopSessionThatFinishedItsTurnIsIdle() throws {
         try writeTranscript(#"{"type":"assistant","message":{"stop_reason":"end_turn"}}"#,
-                            session: "0b24b489", cwd: "/Users/vinz/app")
+                            session: "0b24b489", cwd: "/Users/someone/app")
         XCTAssertEqual(
             ClaudeSessionMonitor.state(of: try record(desktop), transcripts: reader).state, .idle
         )
@@ -192,11 +192,11 @@ final class ClaudeSessionStateSourceTests: XCTestCase {
     /// never allowed to talk it out of that.
     func testATerminalSessionKeepsItsOwnStateAndItsWaitingFor() throws {
         let waiting = try record("""
-        { "pid": 7, "sessionId": "0b24b489", "cwd": "/Users/vinz/app",
+        { "pid": 7, "sessionId": "0b24b489", "cwd": "/Users/someone/app",
           "status": "waiting", "waitingFor": "permission" }
         """)
         try writeTranscript(#"{"type":"assistant","message":{"stop_reason":"tool_use"}}"#,
-                            session: "0b24b489", cwd: "/Users/vinz/app")
+                            session: "0b24b489", cwd: "/Users/someone/app")
         let session = ClaudeSessionMonitor.state(of: waiting, transcripts: reader)
         XCTAssertEqual(session.state, .waiting)
         XCTAssertEqual(session.waitingFor, "permission")
@@ -253,12 +253,12 @@ extension ClaudeSessionRecordTests {
     }
 }
 
-/// The session Codenotch starts itself must never reach the notch.
+/// The session Ai-Manager starts itself must never reach the notch.
 ///
 /// Renewing the OAuth token runs the Claude CLI, and the CLI registers a
 /// session file for the second or so it is alive — verified on a real machine:
 /// the count under `~/.claude/sessions` goes six, seven, six, and the file
-/// carries the pid of the process Codenotch spawned. Left alone it draws a row
+/// carries the pid of the process Ai-Manager spawned. Left alone it draws a row
 /// nobody asked for, and `isBusy` reads it as work in progress and starts
 /// polling usage hard on the strength of it.
 @MainActor
@@ -279,7 +279,7 @@ final class ClaudeOwnSessionFilterTests: XCTestCase {
     /// is the filter.
     private var livePID: Int32 { ProcessInfo.processInfo.processIdentifier }
 
-    private func writeSession(pid: Int32, name: String, cwd: String = "/Users/vinz/app") throws {
+    private func writeSession(pid: Int32, name: String, cwd: String = "/Users/someone/app") throws {
         let json = """
         { "pid": \(pid), "sessionId": "\(name)", "cwd": "\(cwd)",
           "name": "\(name)", "entrypoint": "claude-desktop" }
@@ -288,7 +288,7 @@ final class ClaudeOwnSessionFilterTests: XCTestCase {
     }
 
     /// The `/usage` probe runs from `ClaudeUsageCLI.scratchDirectory`, and a
-    /// session filed from there is Codenotch's whichever pid wrote it. Seen on
+    /// session filed from there is Ai-Manager's whichever pid wrote it. Seen on
     /// a real machine as a "usage-scratch-e1 finished" banner: the probe ran
     /// `busy`, vanished, and was announced as a turn that ended.
     func testASessionFromTheUsageScratchDirectoryIsLeftOut() throws {
@@ -309,7 +309,7 @@ final class ClaudeOwnSessionFilterTests: XCTestCase {
     func testAnIgnoredPidIsLeftOut() throws {
         try writeSession(pid: livePID, name: "mine")
         let found = ClaudeSessionMonitor.read(directory: directory, ignoring: [livePID])
-        XCTAssertTrue(found.isEmpty, "the session Codenotch started is not the user's")
+        XCTAssertTrue(found.isEmpty, "the session Ai-Manager started is not the user's")
     }
 
     /// Ignoring one must not hide the rest — the notch still has to show every
@@ -570,7 +570,7 @@ final class ClaudeSessionOwnershipTests: XCTestCase {
     private func json(pid: Int32, name: String, entrypoint: String, host: String?) -> String {
         let hostLine = host.map { #""hostSessionId": "\#($0)","# } ?? ""
         return """
-        { "pid": \(pid), "sessionId": "s\(pid)", "cwd": "/Users/vinz/app",
+        { "pid": \(pid), "sessionId": "s\(pid)", "cwd": "/Users/someone/app",
           "name": "\(name)", "entrypoint": "\(entrypoint)", \(hostLine)
           "status": "busy" }
         """

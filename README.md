@@ -1,8 +1,8 @@
 <div align="center">
 
-![Codenotch](docs/design/codenotch-banner.png)
+![Ai-Manager](docs/design/ai-manager-banner.png)
 
-[![CI](https://github.com/vinzdg/codenotch/actions/workflows/ci.yml/badge.svg)](https://github.com/vinzdg/codenotch/actions/workflows/ci.yml)
+[![CI](https://github.com/adaalif/ai-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/adaalif/ai-manager/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-macOS%2026%2B-black)
 ![Swift](https://img.shields.io/badge/swift-5-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -19,56 +19,26 @@ Hover a ring for its limit windows and when they reset. Claude's ring shows the
 same **current session** window Claude Code's own `/usage` leads with, so the
 two never disagree.
 
-## Download
+## Install
 
-[![Download for macOS](docs/design/download-macos.svg)](../../releases/latest/download/Codenotch.dmg)
-
-That button is the disk image itself, not the page it sits on — the asset is
-named `Codenotch.dmg` in every release, so `releases/latest/download/` always
-resolves to the newest one and the link never needs updating. Signed,
-notarized, and updating itself from then on. Take this one unless you have a
-reason not to; the [release page](../../releases/latest) has the notes.
-
-To try unreleased `main` without an Xcode install, the [preview
-build](../../releases/tag/preview) is rebuilt from every commit, and the
-Package workflow keeps a per-commit disk image on each of its
-[runs](../../actions/workflows/package.yml). Neither is notarized — they are
-ad-hoc signed, because the Developer ID certificate exists on one machine — so
-macOS quarantines the download. Clear the flag once, after dragging the app to
-Applications:
-
-```sh
-xattr -dr com.apple.quarantine /Applications/Codenotch.app
-```
-
-If macOS says the app is *damaged*, that is the quarantine flag rather than a bad download — run the command above.
-
-Universal binary. macOS 15 or later. To build and install a copy from source
-instead, see [Building](#building).
+There are no public downloads. Build it yourself — see [Building](#building).
+Universal binary, macOS 15 or later.
 
 ## Windows
 
-[![Download for Windows](docs/design/download-windows.svg)](../../releases/latest/download/Codenotch-Setup.exe)
-
-A Windows port — Rust/Tauri 2, same design and providers — lives in [`windows/`](windows/README.md).
-The button is the installer itself, named `Codenotch-Setup.exe` in every release for the same
-reason the dmg keeps one name. It installs for the current user without administrator rights,
-and fetches WebView2 if Windows does not already have it.
-
-The installer is not code-signed, so the first time it runs SmartScreen says *Windows protected
-your PC*. Choose **More info**, then **Run anyway**. Every Windows change also leaves an
-installer on its [Windows Package run](../../actions/workflows/windows-package.yml).
+A Windows port — Rust/Tauri 2, same design and providers — lives in
+[`windows/`](windows/README.md), with its own build steps.
 
 ## Connect your phone
 
-The Codenotch phone app (iOS and Android) can show the same usage
+The Ai-Manager phone app (iOS and Android) can show the same usage
 percentages, reset times and session states as the notch on your Mac.
 It reads only what the notch already displays — never tokens, credentials
 or raw API responses.
 
 To pair, open **Settings › Phone › Connect a Phone…** (or the menu item)
 on your Mac. A QR code appears with a five-minute countdown; scan it with
-the Codenotch phone app, or copy the link and paste it into the app. The
+the Ai-Manager phone app, or copy the link and paste it into the app. The
 Mac and phone must be on the same Wi-Fi network — the server answers only
 local-network addresses and rejects anything routed over the internet.
 
@@ -89,11 +59,11 @@ wire-level details.
 | **Claude Code** | official | Claude Desktop's own cached usage response, where Desktop is running and signed into the same account. Then Claude Code's own `/usage`, asked of the installed `claude`. Then the OAuth token in the login keychain, against the endpoint that command uses. |
 | **Cursor** | official | The editor's signed-in session in its local SQLite state, or the `cursor-agent` login in the keychain — no separate sign-in. |
 | **Codex** | official | Using the local Codex sign-in. Shows the 5-hour and weekly limits when available, plus extra limit windows when the account has them. |
-| **DeepSeek Platform** | derived from official Platform responses | Explicit sign-in in Codenotch's own WKWebView, then the Platform account summary and API-key/model usage endpoints. Shows funded/spent balance, 30-day tokens/cost, requests and API-key count. |
+| **DeepSeek Platform** | derived from official Platform responses | Explicit sign-in in Ai-Manager's own WKWebView, then the Platform account summary and API-key/model usage endpoints. Shows funded/spent balance, 30-day tokens/cost, requests and API-key count. |
 | **Antigravity** | official where licensed, otherwise a request count | Antigravity's local language server first, then Google's quota endpoint; a plain count when neither will answer for the account. |
 | **GLM** | official | Z.ai's Coding Plan monitor endpoint, with a key borrowed from whichever coding tool already holds one — Claude Code's `settings.json`, ZCode, or OpenCode. |
-| **MiniMax** | official where a Coding Plan key is used, derived from official Platform responses for the in-app sign-in | A Coding Plan key pasted in Settings, or explicit sign-in in Codenotch's own WKWebView. |
-| **QianwenAI** | derived from official console responses | Explicit sign-in in Codenotch's own WKWebView, then the console's own Token Plan gateway. Shows the plan's credits window for whichever period the console reports — weekly or monthly. |
+| **MiniMax** | official where a Coding Plan key is used, derived from official Platform responses for the in-app sign-in | A Coding Plan key pasted in Settings, or explicit sign-in in Ai-Manager's own WKWebView. |
+| **QianwenAI** | derived from official console responses | Explicit sign-in in Ai-Manager's own WKWebView, then the console's own Token Plan gateway. Shows the plan's credits window for whichever period the console reports — weekly or monthly. |
 | **Ollama (Local)** | local runtime | Automatically detected local models, RAM/VRAM, unload time and context. Optional response capture adds thinking and generation speed. |
 | **LM Studio** | local runtime | Loaded models from LM Studio's own listing, what each one is doing (prompt, generating, queue) from its SDK socket, and speed, context use and tokens per day from its server log. No relay needed. |
 | **Grok** | official | The Grok CLI session in `~/.grok/auth.json`, against the same credits billing endpoint `/usage` uses. Once that session has expired it is renewed in memory from the file's own refresh token, the way the CLI would; the file itself is never written. |
@@ -110,7 +80,7 @@ wire-level details.
 Most providers borrow a credential or session from a tool already on your Mac.
 DeepSeek is the explicit browser-login exception: it never reads a browser's
 cookies or credentials, and only makes requests after you choose **Sign in to
-DeepSeek** from Codenotch. MiniMax is the same kind of exception — a key you
+DeepSeek** from Ai-Manager. MiniMax is the same kind of exception — a key you
 paste in Settings, or an explicit WKWebView sign-in. QianwenAI is a third: it
 publishes no usage API and has no key to paste, so that WKWebView session is the
 only way in. None of them opens a browser's cookie store.
@@ -126,7 +96,7 @@ Each loaded model gets a notch cell; reorder or hide it in **Settings → Accoun
 Hover for RAM/VRAM, unload time, context limit and quantization.
 
 For generation speed (**tok/s**) and live **Thinking**, enable **Measure speed and thinking**
-in Settings → Ollama, keep Codenotch open and connect through its local relay:
+in Settings → Ollama, keep Ai-Manager open and connect through its local relay:
 
 ```sh
 OLLAMA_HOST=http://127.0.0.1:11435 ollama run gemma4:e4b --think
@@ -145,7 +115,7 @@ request used. A white arc turns while the model reads a prompt or generates, and
 of dots when requests are queued behind it. Hover for context used, tokens and requests today,
 reasoning share, speculative-decoding acceptance, model size, quantization and context limit.
 
-Nothing has to be pointed at Codenotch: what a model is doing comes from LM Studio's SDK socket
+Nothing has to be pointed at Ai-Manager: what a model is doing comes from LM Studio's SDK socket
 on the same port (the one `lms ps` uses), and speed and tokens come from `~/.lmstudio/server-logs`,
 which LM Studio writes for every request from any client. Only counts and timings are read from
 those files, never a prompt or a reply. Responses through the OpenAI-compatible endpoint carry no
@@ -183,18 +153,18 @@ mkdir -p "$HOME/.codex-work"
 CODEX_HOME="$HOME/.codex-work" codex -c 'cli_auth_credentials_store="file"' login
 ```
 
-Choose the second account during sign-in, then restart Codenotch. Run that
+Choose the second account during sign-in, then restart Ai-Manager. Run that
 account's CLI sessions with `CODEX_HOME="$HOME/.codex-work" codex` as well.
 Repeat with another name, such as `.codex-personal`, for more accounts.
 Settings shows each account's email and profile directory; each ring can be
 reordered or switched off independently. Switching one off forgets only its
-Codenotch readings and leaves the Codex login intact.
+Ai-Manager readings and leaves the Codex login intact.
 
-Codenotch reads each profile's `auth.json`; keychain-only or API-key-only
+Ai-Manager reads each profile's `auth.json`; keychain-only or API-key-only
 logins cannot provide these ChatGPT account limits. It never copies, refreshes
 or writes Codex credentials. If a login expires, use that profile's Codex CLI
 to renew it. Directories outside the `~/.codex-<slug>` convention are not
-discovered automatically, and adding a profile requires restarting Codenotch,
+discovered automatically, and adding a profile requires restarting Ai-Manager,
 just as it does for Claude.
 
 ## When a session ends
@@ -277,19 +247,17 @@ default; fixed presets are available for pink, red, orange, yellow, green,
 teal, blue, indigo, purple and off-white.
 
 The app itself can show a Dock icon, a menu bar item, or neither. The menu bar
-item is the Codenotch icon until you switch on **Show limit information in
+item is the Ai-Manager icon until you switch on **Show limit information in
 menu bar** under Settings → Appearance → App; then it shows the five-hour
 limits of the providers you choose there — the provider's mark, the share used
 and the time until it resets, like `72% · 2h 18m | 41% · 4h 05m`. Choosing
-what the bar shows never changes what Codenotch reads, and with nothing chosen
+what the bar shows never changes what Ai-Manager reads, and with nothing chosen
 the icon comes back. Its menu has the full readings either way.
 
 ## Updates
 
-Codenotch updates itself. [Sparkle](https://sparkle-project.org) checks daily
-and installs in the background without prompting; Settings says so and can
-switch it off. Every update is EdDSA-signed, so nothing installs that wasn't
-built and signed by the maintainer.
+None. Builds are private and never update themselves from a server;
+rebuild from source to get a newer version.
 
 ## Building
 
@@ -312,14 +280,14 @@ tool's token returns on every launch. To make the grant stick during local
 development, sign the built app with a stable self-signed identity:
 
 ```sh
-Scripts/sign-local.sh   # signs /Applications/Codenotch.app (pass a path to override)
+Scripts/sign-local.sh   # signs /Applications/Ai-Manager.app (pass a path to override)
 ```
 
-It creates a reusable `Codenotch Local Signing` certificate in your login
+It creates a reusable `Ai-Manager Local Signing` certificate in your login
 keychain (no Apple Developer account needed) and re-signs the app. Grant the
 keychain prompt once more after signing; it will not ask again.
 
-Run with `CODENOTCH_DEMO=1` to see fixed sample data instead of live readings.
+Run with `AI_MANAGER_DEMO=1` to see fixed sample data instead of live readings.
 
 ## Architecture
 
@@ -378,7 +346,7 @@ windows still fall back to the CLI/OAuth sources after 30 minutes. Used, paused,
 and expired grants are hidden. There is no built-in promotion date or assumed
 entitlement. As checked on September 23, 2026, the OAuth usage endpoint does
 not expose the grants (`ineligible_reason: surface`), so a CLI/OAuth-only
-setup cannot show them yet. Codenotch displays availability only; redeem a
+setup cannot show them yet. Ai-Manager displays availability only; redeem a
 reset in Claude. See [the provider notes](docs/providers/claude-resets.md).
 
 **Keychain:** Claude's readings do not use it where Claude Code is installed.
@@ -422,7 +390,7 @@ a look then refuses every reading a provider is holding, however new, and asks
 the provider. It is off by default because it is not strictly better: it spends
 a request each time, and a provider that rate-limits answers one request too
 many by refusing the next few minutes of them, which leaves the figure older
-than the cache would have. Worth turning on to check Codenotch against a
+than the cache would have. Worth turning on to check Ai-Manager against a
 provider's own dashboard, and worth turning off again after. **Refresh now** and
 a click on a ring always ask this way — those are somebody's own clicks, not a
 schedule.
@@ -431,7 +399,7 @@ schedule.
 unified log.
 
 ```sh
-/usr/bin/log stream --predicate 'subsystem == "com.vinz.codenotch"' --level debug
+/usr/bin/log stream --predicate 'subsystem == "com.adaalif.ai-manager"' --level debug
 ```
 
 ## Contributing
@@ -440,4 +408,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE) © 2026 Vinz
+[MIT](LICENSE) © 2026 adaalif. Based on [Codenotch](https://github.com/vinzdg/codenotch)
+by Vinz, also MIT.

@@ -45,7 +45,7 @@ enum ReleaseNotes {
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Antigravity without the IDE running"),
-                        detail: L10n.t("With the IDE closed, Codenotch starts Antigravity's own language server to read your quota rather than showing nothing.")
+                        detail: L10n.t("With the IDE closed, Ai-Manager starts Antigravity's own language server to read your quota rather than showing nothing.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("OpenCode, whichever version"),
@@ -67,7 +67,7 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("Cost per project"),
-                        detail: L10n.t("A new Costs section reads the transcripts Claude Code and Codex already keep, and shows what each project spent of each login's allowance — by day, week and month, priced from your plan. Usage from before Codenotch was running is shown as other, never guessed.")
+                        detail: L10n.t("A new Costs section reads the transcripts Claude Code and Codex already keep, and shows what each project spent of each login's allowance — by day, week and month, priced from your plan. Usage from before Ai-Manager was running is shown as other, never guessed.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Figures that keep up"),
@@ -185,7 +185,7 @@ enum ReleaseNotes {
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Quieter"),
-                        detail: L10n.t("Opening Codenotch no longer announces a limit that was reached long before: a reading kept from last time is no longer mistaken for something that just happened. Clicking the notch to hold it open lasts the session rather than for good, so the full-screen fold is never disabled behind your back.")
+                        detail: L10n.t("Opening Ai-Manager no longer announces a limit that was reached long before: a reading kept from last time is no longer mistaken for something that just happened. Clicking the notch to hold it open lasts the session rather than for good, so the full-screen fold is never disabled behind your back.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("The menu bar shows more"),
@@ -267,7 +267,7 @@ enum ReleaseNotes {
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("QianwenAI"),
-                        detail: L10n.t("A ring for QianwenAI's Token Plan, signed into from Codenotch.")
+                        detail: L10n.t("A ring for QianwenAI's Token Plan, signed into from Ai-Manager.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("繁體中文, and every language complete"),
@@ -289,15 +289,15 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("No more crash in Simplified Chinese"),
-                        detail: L10n.t("With the app in 简体中文, a provider past 80% crashed Codenotch a few seconds after launch. Every translation is now checked for this.")
+                        detail: L10n.t("With the app in 简体中文, a provider past 80% crashed Ai-Manager a few seconds after launch. Every translation is now checked for this.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Deny means no"),
-                        detail: L10n.t("Answering Deny when macOS asks about a saved login now stops Codenotch reading that account from any source, until you choose Allow access… again.")
+                        detail: L10n.t("Answering Deny when macOS asks about a saved login now stops Ai-Manager reading that account from any source, until you choose Allow access… again.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Fewer file access prompts"),
-                        detail: L10n.t("Renewing Claude's login no longer starts your MCP servers and hooks, and Kimi sessions are matched without looking inside your folders, so macOS no longer asks about Documents, Desktop or network volumes on Codenotch's behalf.")
+                        detail: L10n.t("Renewing Claude's login no longer starts your MCP servers and hooks, and Kimi sessions are matched without looking inside your folders, so macOS no longer asks about Documents, Desktop or network volumes on Ai-Manager's behalf.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Smaller fixes"),
@@ -311,7 +311,7 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("Lighter on the battery"),
-                        detail: L10n.t("Codenotch idles at a fraction of the CPU it used, and moving the pointer costs less than half as much. The working spinner is drawn by the system instead of redrawing the notch every frame, and full-screen apps are checked every two seconds rather than on every movement.")
+                        detail: L10n.t("Ai-Manager idles at a fraction of the CPU it used, and moving the pointer costs less than half as much. The working spinner is drawn by the system instead of redrawing the notch every frame, and full-screen apps are checked every two seconds rather than on every movement.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Windows Settings opens again"),
@@ -336,8 +336,8 @@ enum ReleaseNotes {
                 headline: L10n.t("An installer for Windows, Ukrainian, Dark glass, and limits you set yourself."),
                 changes: [
                     ReleaseNote.Change(
-                        title: L10n.t("Codenotch for Windows, installable"),
-                        detail: L10n.t("Every release now carries Codenotch-Setup.exe, which installs for the current user without administrator rights. It is not signed yet, so Windows asks once. The port also gains the Mac's settings window, Small, Medium and Large sizes, a ring for the weekly limit, and Chinese, Japanese, Korean and Ukrainian.")
+                        title: L10n.t("Ai-Manager for Windows, installable"),
+                        detail: L10n.t("Every release now carries Ai-Manager-Setup.exe, which installs for the current user without administrator rights. It is not signed yet, so Windows asks once. The port also gains the Mac's settings window, Small, Medium and Large sizes, a ring for the weekly limit, and Chinese, Japanese, Korean and Ukrainian.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Українська"),
@@ -371,7 +371,7 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("Kiro and MiniMax"),
-                        detail: L10n.t("Kiro reads the kiro-cli sign-in already on this Mac. MiniMax signs in from Codenotch, with a choice of international or China region.")
+                        detail: L10n.t("Kiro reads the kiro-cli sign-in already on this Mac. MiniMax signs in from Ai-Manager, with a choice of international or China region.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Deutsch"),
@@ -424,7 +424,7 @@ enum ReleaseNotes {
                         detail: L10n.t("A quit action in the Settings sidebar, for when the menu bar icon is switched off.")
                     ),
                     ReleaseNote.Change(
-                        title: L10n.t("A web page cannot reach Codenotch's local servers"),
+                        title: L10n.t("A web page cannot reach Ai-Manager's local servers"),
                         detail: L10n.t("The Ollama relay and the Windows event server now refuse browser requests from other sites, and raw responses are kept out of the system log. Reading DeepSeek also checks the page's address exactly, where a lookalike domain could have passed before.")
                     ),
                     ReleaseNote.Change(
@@ -571,7 +571,7 @@ enum ReleaseNotes {
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("A ready-made download, no Xcode needed"),
-                        detail: L10n.t("Every build now produces an app bundle you can run, so trying Codenotch no longer starts with a developer setup.")
+                        detail: L10n.t("Every build now produces an app bundle you can run, so trying Ai-Manager no longer starts with a developer setup.")
                     ),
                 ]
             ),
@@ -701,7 +701,7 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("Codex is read live instead of from a log"),
-                        detail: L10n.t("The figure came from a file Codex writes during a turn, so it was as old as the last time you used it — three days stale in one case. Codenotch now asks Codex itself, and matches its own panel.")
+                        detail: L10n.t("The figure came from a file Codex writes during a turn, so it was as old as the last time you used it — three days stale in one case. Ai-Manager now asks Codex itself, and matches its own panel.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("The Codex ring notices the desktop app"),
@@ -749,7 +749,7 @@ enum ReleaseNotes {
                 changes: [
                     ReleaseNote.Change(
                         title: L10n.t("Antigravity shows its actual quota"),
-                        detail: L10n.t("Google will not answer Codenotch directly, so it asks Antigravity's own language server instead — the same place Antigravity's usage panel gets its figure.")
+                        detail: L10n.t("Google will not answer Ai-Manager directly, so it asks Antigravity's own language server instead — the same place Antigravity's usage panel gets its figure.")
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Usage reads both ways"),
@@ -783,10 +783,10 @@ enum ReleaseNotes {
                     ),
                     ReleaseNote.Change(
                         title: L10n.t("Claude, Cursor, Codex and Gemini"),
-                        detail: L10n.t("Each read from the tool already signed in on this Mac. Codenotch never asks for a password.")
+                        detail: L10n.t("Each read from the tool already signed in on this Mac. Ai-Manager never asks for a password.")
                     ),
                     ReleaseNote.Change(
-                        title: L10n.t("Choose where Codenotch appears"),
+                        title: L10n.t("Choose where Ai-Manager appears"),
                         detail: L10n.t("In the Dock, in the menu bar, or nowhere at all.")
                     )
                 ]

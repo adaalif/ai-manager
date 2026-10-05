@@ -57,7 +57,7 @@ enum ChannelNotifications {
         }
     }
 
-    /// A banner; or, when banners are switched off for Codenotch in System
+    /// A banner; or, when banners are switched off for Ai-Manager in System
     /// Settings, that pane, because a test that shows nothing and says
     /// nothing reads as broken.
     static func test() {
@@ -66,17 +66,17 @@ enum ChannelNotifications {
             switch settings.authorizationStatus {
             case .notDetermined:
                 center.requestAuthorization(options: [.alert, .sound]) { ok, _ in
-                    if ok { post(title: L10n.t("Codenotch test"), body: L10n.t("This is what one looks like.")) }
+                    if ok { post(title: L10n.t("Ai-Manager test"), body: L10n.t("This is what one looks like.")) }
                 }
             case .denied:
                 DispatchQueue.main.async {
-                    let id = Bundle.main.bundleIdentifier ?? "com.vinz.codenotch"
+                    let id = Bundle.main.bundleIdentifier ?? "com.adaalif.ai-manager"
                     if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(id)") {
                         NSWorkspace.shared.open(url)
                     }
                 }
             default:
-                post(title: L10n.t("Codenotch test"), body: L10n.t("This is what one looks like."))
+                post(title: L10n.t("Ai-Manager test"), body: L10n.t("This is what one looks like."))
             }
         }
     }

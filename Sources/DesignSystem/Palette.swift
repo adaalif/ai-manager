@@ -131,20 +131,20 @@ extension NSColor {
     }
 }
 
-private struct CodenotchReduceTransparencyKey: EnvironmentKey {
+private struct AiManagerReduceTransparencyKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
 
 extension EnvironmentValues {
     /// True when macOS Accessibility "Reduce Transparency" is enabled in system settings,
-    /// or explicitly overridden via `.environment(\.codenotchReduceTransparency, ...)`.
-    var codenotchReduceTransparency: Bool {
-        get { self[CodenotchReduceTransparencyKey.self] || self.accessibilityReduceTransparency }
-        set { self[CodenotchReduceTransparencyKey.self] = newValue }
+    /// or explicitly overridden via `.environment(\.aiManagerReduceTransparency, ...)`.
+    var aiManagerReduceTransparency: Bool {
+        get { self[AiManagerReduceTransparencyKey.self] || self.accessibilityReduceTransparency }
+        set { self[AiManagerReduceTransparencyKey.self] = newValue }
     }
 }
 
-private struct CodenotchHeadlessGlassKey: EnvironmentKey {
+private struct AiManagerHeadlessGlassKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
 
@@ -173,8 +173,8 @@ extension EnvironmentValues {
     /// the material — the transparent body fill, the `darkGlass` dim, the
     /// opaque hardware band — which is the part that is ours to get wrong.
     /// See TASKS.md, "The hardware's band stays black".
-    var codenotchHeadlessGlass: Bool {
-        get { self[CodenotchHeadlessGlassKey.self] }
-        set { self[CodenotchHeadlessGlassKey.self] = newValue }
+    var aiManagerHeadlessGlass: Bool {
+        get { self[AiManagerHeadlessGlassKey.self] }
+        set { self[AiManagerHeadlessGlassKey.self] = newValue }
     }
 }

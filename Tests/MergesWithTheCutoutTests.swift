@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import Codenotch
+@testable import AiManager
 
 /// **One silhouette, not two shapes that touch.**
 ///
@@ -1182,7 +1182,7 @@ final class MergesWithTheCutoutTests: XCTestCase {
         let size = m.panelSize
         let renderer = ImageRenderer(content: NotchRootView(model: m)
             .frame(width: size.width, height: size.height)
-            .environment(\.codenotchHeadlessGlass, true)
+            .environment(\.aiManagerHeadlessGlass, true)
             .environment(\.colorScheme, .dark))
         renderer.scale = 1
         return renderer.cgImage.map(NSBitmapImageRep.init(cgImage:))

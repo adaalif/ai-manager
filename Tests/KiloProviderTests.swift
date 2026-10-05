@@ -1,5 +1,5 @@
 import XCTest
-@testable import Codenotch
+@testable import AiManager
 
 /// Contract for `KiloProvider`'s injectable surface.
 ///

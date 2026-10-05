@@ -1,6 +1,6 @@
 import XCTest
 import Sparkle
-@testable import Codenotch
+@testable import AiManager
 
 /// Fixtures are the real thing: the keychain payload's shape and the actual
 /// `loadCodeAssist` response from a signed-in install.
@@ -709,8 +709,8 @@ final class AntigravityBridgeTests: XCTestCase {
 
     func testItParsesPortsFromLSOF() {
         let output = """
-        language_server 29283 vinz 12u IPv4 0x1 0t0 TCP 127.0.0.1:63881 (LISTEN)
-        language_server 29283 vinz 13u IPv4 0x2 0t0 TCP 127.0.0.1:63882 (LISTEN)
+        language_server 29283 user 12u IPv4 0x1 0t0 TCP 127.0.0.1:63881 (LISTEN)
+        language_server 29283 user 13u IPv4 0x2 0t0 TCP 127.0.0.1:63882 (LISTEN)
         """
         XCTAssertEqual(AntigravityBridge.parsePorts(fromLSOF: output), [63881, 63882])
     }
@@ -1282,15 +1282,6 @@ final class AntigravityFallbackTests: XCTestCase {
     }
 }
 
-final class AuthorCreditTests: XCTestCase {
-    /// Pinned because a wrong handle in a credit is worse than none, and it is
-    /// the kind of string nobody re-reads once it looks right.
-    func testTheCreditPointsAtTheRightAccount() {
-        XCTAssertEqual(SettingsView.authorURL.absoluteString, "https://x.com/hivinz_")
-        XCTAssertEqual(SettingsView.authorURL.scheme, "https")
-    }
-}
-
 /// Where the app shows itself, apart from the notch. Only one of the three has
 /// a Dock tile, and only one makes a menu bar item — get either mapping wrong
 /// and the app is either unreachable or in two places at once.
@@ -1482,7 +1473,7 @@ final class StatusMenuTests: XCTestCase {
         XCTAssertTrue(titles[1].contains("29% Used · 71% left"), titles[1])
         XCTAssertTrue(titles.contains("Refresh all"))
         XCTAssertTrue(titles.contains("Settings…"))
-        XCTAssertTrue(titles.contains("Quit Codenotch"))
+        XCTAssertTrue(titles.contains("Quit Ai-Manager"))
         // The header re-reads its own provider.
         XCTAssertEqual(menu.items[0].representedObject as? String, "codex")
     }

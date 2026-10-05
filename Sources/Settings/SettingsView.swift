@@ -81,7 +81,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .lmstudio:      return L10n.t("Models loaded in LM Studio on this Mac.")
         case .customEndpoints: return L10n.t("OpenAI-compatible APIs, local runtimes and custom proxies.")
         case .appearance:    return L10n.t("How the notch looks and where it sits.")
-        case .notifications: return L10n.t("What Codenotch tells you, and when.")
+        case .notifications: return L10n.t("What Ai-Manager tells you, and when.")
         case .costs:         return L10n.t("What each project spent of each login's allowance.")
         case .general:       return L10n.t("Startup, updates and everything else.")
         }
@@ -146,7 +146,7 @@ private struct VisualEffect: NSViewRepresentable {
     }
 
     private func apply(to view: NSVisualEffectView, context: Context) {
-        if context.environment.codenotchReduceTransparency {
+        if context.environment.aiManagerReduceTransparency {
             view.material = .windowBackground
             view.blendingMode = .withinWindow
         } else {
@@ -349,7 +349,7 @@ private struct SettingsQuitRow: View {
                 Image(systemName: "power")
                     .font(.system(size: 12, weight: .regular))
                     .frame(width: 18)
-                Text(L10n.t("Quit Codenotch"))
+                Text(L10n.t("Quit Ai-Manager"))
                     .font(.system(size: 13, weight: .regular))
             }
             .foregroundStyle(isHovered ? Self.hoverRed : Color.white.opacity(0.55))
@@ -426,7 +426,6 @@ struct SettingsView: View {
     /// The credit link lights up under the pointer. A `Link` gives no hover
     /// feedback of its own on macOS, so without this the only sign it is
     /// clickable is the cursor.
-    @State private var authorLinkHovered = false
     /// A gesture for this sitting, not a setting: the sidebar comes back on
     /// the next open, the same way a window's own sidebar toggle behaves.
     /// A short-lived acknowledgement for the recenter action. The notch may
@@ -466,7 +465,7 @@ struct SettingsView: View {
     var previewSessionLimitAlert: (() -> Void)? = nil
     var previewWeeklyLimitAlert: (() -> Void)? = nil
     var sendTestNotification: (() -> Void)? = nil
-    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
+    @Environment(\.aiManagerReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -507,7 +506,7 @@ struct SettingsView: View {
         // the bug and no way to notice.
         .id(preferences.language)
         .tint(preferences.accentColor.color)
-        .environment(\.codenotchAccentColor, preferences.accentColor.color)
+        .environment(\.aiManagerAccentColor, preferences.accentColor.color)
         // Fills the window rather than claiming a fixed size. Under
         // `fullSizeContentView` the content view is the whole frame — title
         // bar included — so a view sized to `SettingsView.height` left the
@@ -588,7 +587,7 @@ struct SettingsView: View {
                     .resizable()
                     .interpolation(.high)
                     .frame(width: 22, height: 22)
-                Text("Codenotch")
+                Text("Ai-Manager")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -627,7 +626,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 SettingsQuitRow(quit: quit)
                 HStack(spacing: 8) {
-                    Text("Codenotch \(updater.currentVersion)")
+                    Text("Ai-Manager \(updater.currentVersion)")
                         .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(.white.opacity(0.32))
                     Spacer(minLength: 0)
@@ -767,7 +766,7 @@ struct SettingsView: View {
                 }
                 // Beside the switches it explains, not stranded at the end of
                 // the page.
-                Text(L10n.t("Most readings are borrowed from a tool that already holds the account. DeepSeek and MiniMax are the exceptions: clicking Sign in opens a Codenotch window for that account, and signing out here clears only that session and its saved reading."))
+                Text(L10n.t("Most readings are borrowed from a tool that already holds the account. DeepSeek and MiniMax are the exceptions: clicking Sign in opens an Ai-Manager window for that account, and signing out here clears only that session and its saved reading."))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -805,9 +804,9 @@ struct SettingsView: View {
         .animation(.snappy(duration: 0.25), value: preferences.disabledModels)
     }
 
-    // One pane, because they are one question: what Codenotch looks like and
+    // One pane, because they are one question: what Ai-Manager looks like and
     // where it turns up. Split across several it read as unrelated settings,
-    // and "Where Codenotch appears" was a header long enough to look like a
+    // and "Where Ai-Manager appears" was a header long enough to look like a
     // warning.
     private var appearancePane: some View {
         Form {
@@ -1177,12 +1176,12 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                .help(L10n.t("Shows \(choice.name)'s five-hour limit in the menu bar. Codenotch reads it either way."))
+                .help(L10n.t("Shows \(choice.name)'s five-hour limit in the menu bar. Ai-Manager reads it either way."))
             }
 
             Text(menuBarChoices.isEmpty
-                 ? L10n.t("Nothing Codenotch reads has a five-hour limit to show yet. Claude and Codex do — switch one on in Accounts.")
-                 : L10n.t("Leaving a provider out keeps it off the menu bar only — Codenotch still reads it. With none chosen, the icon comes back."))
+                 ? L10n.t("Nothing Ai-Manager reads has a five-hour limit to show yet. Claude and Codex do — switch one on in Accounts.")
+                 : L10n.t("Leaving a provider out keeps it off the menu bar only — Ai-Manager still reads it. With none chosen, the icon comes back."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1219,7 +1218,7 @@ struct SettingsView: View {
                 if let sendTestNotification {
                     Button(L10n.t("Send a test")) { sendTestNotification() }
                     Text(preferences.notificationChannel == .mac
-                         ? L10n.t("Opens System Settings when banners are off for Codenotch.")
+                         ? L10n.t("Opens System Settings when banners are off for Ai-Manager.")
                          : L10n.t("The notch opens for a moment, with the session sound."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -1256,7 +1255,7 @@ struct SettingsView: View {
                 SoundRow(label: L10n.t("Waiting on you"), name: $preferences.sessionBlockedSoundName,
                          pickerEnabled: preferences.sessionEndSound)
 
-                Text(L10n.t("Codenotch already knows the moment an agent stops working or stops to ask you something. Clicking the notch while it is open brings that session's app to the front — the app, not the tab: only some terminals let anything outside them choose a tab, so the tooltip names the session instead."))
+                Text(L10n.t("Ai-Manager already knows the moment an agent stops working or stops to ask you something. Clicking the notch while it is open brings that session's app to the front — the app, not the tab: only some terminals let anything outside them choose a tab, so the tooltip names the session instead."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1329,58 +1328,16 @@ struct SettingsView: View {
         .formStyle(.grouped)
     }
 
-    // Startup and updates together: both are about what Codenotch does
-    // without being asked, and one switch under its own header looked
-    // like an oversight rather than a section.
     private var generalPane: some View {
         Form {
             // No title on the group: the pane's own header above already
             // says "General", and repeating it here would say it twice.
             Section {
-                Toggle(L10n.t("Open Codenotch at login"), isOn: $preferences.launchAtLogin)
+                Toggle(L10n.t("Open Ai-Manager at login"), isOn: $preferences.launchAtLogin)
                 if let problem = preferences.launchAtLoginProblem {
                     Text(problem)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Toggle(L10n.t("Check for updates automatically"), isOn: Binding(
-                    get: { updater.automatic },
-                    set: { updater.automatic = $0 }
-                ))
-
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    // Disclosed rather than merely silent. An app that updates
-                    // itself unprompted *and* reads other apps' credentials is
-                    // exactly the shape security tooling flags; saying so, with
-                    // a way to switch it off, is the difference between a
-                    // background updater and something that looks like it is
-                    // hiding.
-                    Text(L10n.t("Version \(updater.currentVersion). New versions are offered in the notch, and install when you choose Update."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                    // The card a new version brings up in the notch, played
-                    // through for a version that is not there.
-                    Button(L10n.t("Preview")) { updater.preview() }
-                        .controlSize(.small)
-                        .help(L10n.t("Show the update card in the notch, with nothing downloaded"))
-                    Button(L10n.t("Check now")) { updater.checkNow() }
-                        .controlSize(.small)
-                }
-
-                // Says what happened, where the user is already looking.
-                // Sparkle's own answer to a failed check is a modal reading
-                // "an error occurred in retrieving update information", which
-                // names no cause and offers nothing to do about it.
-                if let message = updater.outcome.message {
-                    Text(message)
-                        .font(.caption)
-                        .foregroundStyle(
-                            updater.outcome == .unreachable ? .orange : .secondary
-                        )
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -1392,31 +1349,10 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(L10n.t("It spends a request every time. A provider that rate-limits answers one request too many by refusing the next few minutes of them, and the figure then ages further than it would have. Worth turning on to check Codenotch against a provider's own dashboard, and worth turning off again after."))
+                Text(L10n.t("It spends a request every time. A provider that rate-limits answers one request too many by refusing the next few minutes of them, and the figure then ages further than it would have. Worth turning on to check Ai-Manager against a provider's own dashboard, and worth turning off again after."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-            }
-
-            // An ordinary row here, not a bar pinned across every pane —
-            // that cost every pane a strip of height for one line that only
-            // ever matters on this one, and "blocking the UI" is exactly
-            // what an unrelated pane earns for it.
-            Section {
-                HStack(spacing: 4) {
-                    Text(L10n.t("App designed and developed by"))
-                    Link("@hivinz_", destination: SettingsView.authorURL)
-                        .foregroundStyle(authorLinkHovered
-                                         ? preferences.accentColor.color : .primary)
-                        .underline(authorLinkHovered)
-                        .animation(.easeOut(duration: 0.12), value: authorLinkHovered)
-                        .onHover { inside in
-                            authorLinkHovered = inside
-                            if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
-                        }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -1435,7 +1371,7 @@ struct SettingsView: View {
             if let display = displays.first(where: { $0.id == id }) {
                 return L10n.t("Pinned to \(display.name).")
             }
-            return L10n.t("That display is disconnected. Codenotch follows the active window until it returns.")
+            return L10n.t("That display is disconnected. Ai-Manager follows the active window until it returns.")
         }
     }
 
@@ -1445,8 +1381,6 @@ struct SettingsView: View {
     static func scalePercent(_ scale: Double) -> String {
         "\(Int((scale * 100).rounded()))%"
     }
-
-    static let authorURL = URL(string: "https://x.com/hivinz_")!
 
     /// The band across the top of the panel that the traffic lights sit in.
     ///
@@ -1510,7 +1444,7 @@ struct SettingsView: View {
     /// this, sees four blank rings and concludes it is broken — and the
     /// distinction that catches them out is Claude *Code*, not the Claude app.
     static var setupCopy: String {
-        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify, the Kilo CLI or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
+        L10n.t("Ai-Manager reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify, the Kilo CLI or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
     }
 
     /// Said before it happens rather than after. A system dialogue asking to
@@ -1519,7 +1453,7 @@ struct SettingsView: View {
     /// it return on every read, which is what "it asks every time" turns out to
     /// be.
     static var keychainCopy: String {
-        L10n.t("macOS may ask before Codenotch reads Claude Code's, Antigravity's or cursor-agent's saved login. Background refreshes never show that question; it appears only when you click Allow access…, and Deny stops Codenotch reading that login until you ask again.")
+        L10n.t("macOS may ask before Ai-Manager reads Claude Code's, Antigravity's or cursor-agent's saved login. Background refreshes never show that question; it appears only when you click Allow access…, and Deny stops Ai-Manager reading that login until you ask again.")
     }
 
     /// A provider has just been switched on: put it after the ones already
@@ -1647,7 +1581,7 @@ private struct AccentColorSwatch: View {
     let isSelected: Bool
     let select: () -> Void
 
-    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
+    @Environment(\.aiManagerReduceTransparency) private var reduceTransparency
     @State private var isHovered = false
 
     var body: some View {
@@ -1702,7 +1636,7 @@ private struct MenuBarChoice: Identifiable, Equatable {
     }
 }
 
-/// One provider: whether Codenotch reads it, whose account that is, and where
+/// One provider: whether Ai-Manager reads it, whose account that is, and where
 /// to go if there is nothing to read.
 /// One sound choice, with a preview button.
 private struct SoundRow: View {
@@ -1764,7 +1698,7 @@ private struct AccountRow: View {
     /// now belongs. The row itself cannot: it can see only itself.
     let didConnect: () -> Void
 
-    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
+    @Environment(\.aiManagerReduceTransparency) private var reduceTransparency
 
     /// The handle only appears under the pointer, so a row at rest stays as
     /// quiet as it was before there was anything to drag.
@@ -1922,7 +1856,7 @@ private struct AccountRow: View {
                         // Not "it will stop asking": for Claude it will not.
                         // Claude Code recreates its login when the token
                         // rotates, and a recreated item forgets the grant.
-                        .help(L10n.t("Asks macOS for \(provider.name)'s saved login again. Deny stops Codenotch reading it until you ask again."))
+                        .help(L10n.t("Asks macOS for \(provider.name)'s saved login again. Deny stops Ai-Manager reading it until you ask again."))
                 }
 
                 if isConnected, let destination {
@@ -2083,7 +2017,7 @@ private struct AccountRow: View {
                 ollamaKeyEntry
             }
 
-            // MiniMax is signed into in Codenotch, or by a Coding Plan key
+            // MiniMax is signed into in Ai-Manager, or by a Coding Plan key
             // pasted here. The region is which console that key belongs to.
             // Stored in the keychain on Save, the same way Ollama's is.
             if provider.id == "minimax" {
@@ -2204,7 +2138,7 @@ private struct AccountRow: View {
             minimaxKeyEntry
             minimaxCookieEntry
 
-            Text(L10n.t("Sign in to MiniMax in Codenotch, or paste a Coding Plan key. A Cookie header is optional. Codenotch never reads a browser's cookies."))
+            Text(L10n.t("Sign in to MiniMax in Ai-Manager, or paste a Coding Plan key. A Cookie header is optional. Ai-Manager never reads a browser's cookies."))
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -2294,7 +2228,7 @@ private struct AccountRow: View {
             // Not a sign-in problem, so do not send them off to sign in. The
             // credential is right there and macOS is the one saying no — the
             // remedy is the button on this same row.
-            Text(L10n.t("Codenotch is not reading \(provider.name)'s saved login. Choose Allow access… above and answer Allow."))
+            Text(L10n.t("Ai-Manager is not reading \(provider.name)'s saved login. Choose Allow access… above and answer Allow."))
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         } else {

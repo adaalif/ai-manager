@@ -1,0 +1,1 @@
+{"nodes": [{"id": "pkg_ai_manager_hook", "label": "ai-manager-hook", "file_type": "code", "type": "package", "ecosystem": "cargo", "source_file": "windows/ai-manager-hook/Cargo.toml", "source_location": "L1", "version": "0.3.0"}], "edges": []}

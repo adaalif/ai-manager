@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// that rate-limits, actively harmful.
     private var isRunningTests: Bool { Runtime.isUnderTest }
 
-    /// Quit any copy of Codenotch that was already running.
+    /// Quit any copy of Ai-Manager that was already running.
     ///
     /// Every notch is a window on the screen edge, so a second copy is not a
     /// harmless duplicate the way a second text editor is: it draws a second
@@ -117,13 +117,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let fleet = NotchFleet(scope: preferences.notchScope, edge: preferences.notchEdge)
         self.notchFleet = fleet
 
-        // `CODENOTCH_DEMO=1` puts the design frame's three providers on screen
+        // `AI_MANAGER_DEMO=1` puts the design frame's three providers on screen
         // with its numbers, for screenshots and for eyeballing the layout.
-        if ProcessInfo.processInfo.environment["CODENOTCH_DEMO"] == "1" {
+        if ProcessInfo.processInfo.environment["AI_MANAGER_DEMO"] == "1" {
             fleet.setSnapshots(Fixtures.snapshots())
         } else {
             // DeepSeek's Platform usage page is a browser-session provider:
-            // login is explicit, stays in Codenotch's own WKWebView store, and
+            // login is explicit, stays in Ai-Manager's own WKWebView store, and
             // the page-local requests are refreshed only after that login.
             let deepSeek = WebSessionProvider(site: Sites.deepSeek)
             // QianwenAI's Token Plan is the same kind of provider: no usage API
@@ -224,9 +224,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             let updater = Updater()
             self.updater = updater
-            // An update is offered in the notch, and installed there — see
-            // `UpdateCard`. Checked for as it launches; never under test, where
-            // it would reach for the real feed.
+            // Never started: private builds have no update feed. Kept wired so
+            // the notch's update card still compiles against it.
             updater.$prompt
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(updatePrompt: $0) }
@@ -239,7 +238,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(updatePending: $0) }
                 .store(in: &cancellables)
-            if !isRunningTests { updater.start() }
 
             let relay = OllamaActivityRelay()
             self.ollamaRelay = relay
@@ -315,7 +313,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
             } else {
                 let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-                dir = appSupport.appendingPathComponent("Codenotch/phone-link", isDirectory: true)
+                dir = appSupport.appendingPathComponent("Ai-Manager/phone-link", isDirectory: true)
             }
             let phoneSecretStore: PhoneLinkSecretStore = NSClassFromString("XCTestCase") != nil
                 ? InMemoryPhoneLinkSecretStore()
@@ -773,10 +771,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .sink { [weak fleet] ids in fleet?.setRefreshing(ids) }
                 .store(in: &cancellables)
 
-            // CODENOTCH_DISCOVER=<url> loads that page in the signed-in WebView
+            // AI_MANAGER_DISCOVER=<url> loads that page in the signed-in WebView
             // and logs the API calls it makes — for finding an undocumented
             // endpoint by watching the site rather than guessing at path names.
-            if let target = ProcessInfo.processInfo.environment["CODENOTCH_DISCOVER"],
+            if let target = ProcessInfo.processInfo.environment["AI_MANAGER_DISCOVER"],
                let url = URL(string: target),
                let provider = webProviders.first(where: { url.host?.contains($0.id) == true })
                    ?? webProviders.first {
@@ -1101,10 +1099,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         if preferences.sessionEndSound { SessionChime.play(preferences.sessionEndSoundName) }
-        var notice = UsageResetEvent(providerID: "codenotch", providerName: "Codenotch",
+        var notice = UsageResetEvent(providerID: "ai-manager", providerName: "Ai-Manager",
                                      windowLabel: "", glyph: .claude,
                                      previousFraction: 0, currentFraction: 0, resetsAt: nil)
-        notice.noticeTitle = L10n.t("Codenotch test")
+        notice.noticeTitle = L10n.t("Ai-Manager test")
         notice.noticeSubtitle = L10n.t("This is what one looks like.")
         notice.noticeStatus = ""
         fleet.showResetAlert(notice, duration: 5.0)
