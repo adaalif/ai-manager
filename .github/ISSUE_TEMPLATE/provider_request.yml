@@ -31,7 +31,7 @@ body:
     attributes:
       label: Available CLI / API Endpoints & Auth Method
       description: |
-        How does the local client or CLI communicate with this provider? Where are credentials stored (macOS Keychain, config JSON in `~/.config/...`, environment variable)?
+        How does the local client or CLI communicate with this provider? Where are credentials stored (Windows Credential Manager, config JSON in `~/.config/...`, environment variable)?
     validations:
       required: false
 

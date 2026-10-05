@@ -56,9 +56,9 @@ body:
   - type: input
     id: environment
     attributes:
-      label: Environment & macOS Version
-      description: e.g., macOS Sequoia 15.0, Apple Silicon M3 / Intel
-      placeholder: "macOS 15.0 (Apple Silicon)"
+      label: Environment & Windows Version
+      description: e.g., Windows 11 24H2, x64 / ARM64
+      placeholder: "Windows 11 24H2 (x64)"
     validations:
       required: true
 

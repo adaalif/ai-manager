@@ -1,412 +1,242 @@
-<div align="center">
+# Ai-Manager
 
-![Ai-Manager](docs/design/ai-manager-banner.png)
+A usage notch for Windows that sits on the edge of your screen and answers two
+questions at a glance: **how much of my AI allowance is left**, and **is Claude still
+working**. Rust + Tauri 2 / WebView2.
 
-[![CI](https://github.com/adaalif/ai-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/adaalif/ai-manager/actions/workflows/ci.yml)
-![Platform](https://img.shields.io/badge/platform-macOS%2026%2B-black)
-![Swift](https://img.shields.io/badge/swift-5-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+## What it shows
 
-**A macOS app that pins a small black notch to a screen edge, showing how much
-of each coding assistant's usage limit you have burned — and whether it is
-still working, done, or waiting on you.**
-
-![Collapsed notch with hover tooltip](docs/design/frame-124-hover-tooltip.png)
-
-</div>
-
-Hover a ring for its limit windows and when they reset. Claude's ring shows the
-same **current session** window Claude Code's own `/usage` leads with, so the
-two never disagree.
-
-## Install
-
-There are no public downloads. Build it yourself — see [Building](#building).
-Universal binary, macOS 15 or later.
-
-## Windows
-
-A Windows port — Rust/Tauri 2, same design and providers — lives in
-[`windows/`](windows/README.md), with its own build steps.
-
-## Connect your phone
-
-The Ai-Manager phone app (iOS and Android) can show the same usage
-percentages, reset times and session states as the notch on your Mac.
-It reads only what the notch already displays — never tokens, credentials
-or raw API responses.
-
-To pair, open **Settings › Phone › Connect a Phone…** (or the menu item)
-on your Mac. A QR code appears with a five-minute countdown; scan it with
-the Ai-Manager phone app, or copy the link and paste it into the app. The
-Mac and phone must be on the same Wi-Fi network — the server answers only
-local-network addresses and rejects anything routed over the internet.
-
-Each code is single-use and expires after five minutes. Reopening the
-window always mints a fresh one.
-
-To remove a paired phone, open **Settings › Phone**, find the device in
-the list and click **Remove**. Its credentials are deleted immediately and
-any subsequent request from that phone is rejected.
-
-See [docs/phone-link-protocol.md](docs/phone-link-protocol.md) for the
-wire-level details.
-
-## What it reads
-
-| Provider | Source | How |
+| Cell | Source | How it reads it |
 |---|---|---|
-| **Claude Code** | official | Claude Desktop's own cached usage response, where Desktop is running and signed into the same account. Then Claude Code's own `/usage`, asked of the installed `claude`. Then the OAuth token in the login keychain, against the endpoint that command uses. |
-| **Cursor** | official | The editor's signed-in session in its local SQLite state, or the `cursor-agent` login in the keychain — no separate sign-in. |
-| **Codex** | official | Using the local Codex sign-in. Shows the 5-hour and weekly limits when available, plus extra limit windows when the account has them. |
-| **DeepSeek Platform** | derived from official Platform responses | Explicit sign-in in Ai-Manager's own WKWebView, then the Platform account summary and API-key/model usage endpoints. Shows funded/spent balance, 30-day tokens/cost, requests and API-key count. |
-| **Antigravity** | official where licensed, otherwise a request count | Antigravity's local language server first, then Google's quota endpoint; a plain count when neither will answer for the account. |
-| **GLM** | official | Z.ai's Coding Plan monitor endpoint, with a key borrowed from whichever coding tool already holds one — Claude Code's `settings.json`, ZCode, or OpenCode. |
-| **MiniMax** | official where a Coding Plan key is used, derived from official Platform responses for the in-app sign-in | A Coding Plan key pasted in Settings, or explicit sign-in in Ai-Manager's own WKWebView. |
-| **QianwenAI** | derived from official console responses | Explicit sign-in in Ai-Manager's own WKWebView, then the console's own Token Plan gateway. Shows the plan's credits window for whichever period the console reports — weekly or monthly. |
-| **Ollama (Local)** | local runtime | Automatically detected local models, RAM/VRAM, unload time and context. Optional response capture adds thinking and generation speed. |
-| **LM Studio** | local runtime | Loaded models from LM Studio's own listing, what each one is doing (prompt, generating, queue) from its SDK socket, and speed, context use and tokens per day from its server log. No relay needed. |
-| **Grok** | official | The Grok CLI session in `~/.grok/auth.json`, against the same credits billing endpoint `/usage` uses. Once that session has expired it is renewed in memory from the file's own refresh token, the way the CLI would; the file itself is never written. |
-| **OpenCode** | official | The Go plan's official usage endpoint, with the `opencode-go` key OpenCode itself stores on sign-in. |
-| **Command Code** | official | The GOAT plan's `/alpha` billing endpoints, with the key the Command Code app writes to `~/.commandcode/auth.json`. |
-| **GitHub Copilot** | official | GitHub's Copilot quota endpoint, authenticated with the GitHub CLI session already on the Mac (`gh auth login`). |
-| **Kimi** | official | The Kimi Code CLI session in `~/.kimi-code/credentials/kimi-code.json`, against the same `/usages` endpoint the CLI's `/usage` asks. Shows the 5-hour rate window and the weekly quota. |
-| **Kiro** | official | The kiro-cli session already on this Mac, against the same `/usage` that command prints. Shows monthly credits. |
-| **Amp** | official subscription percentages; derived free-allowance percentage | The Amp CLI login in `~/.local/share/amp/secrets.json`, against Amp's `userDisplayBalanceInfo` endpoint. Shows Agent and Orb usage, or the Free allowance and replenishment rate. See [Amp details](docs/providers/amp.md). |
-| **Apify** | official | The `apify login` session already on this Mac (`~/.apify/auth.json`, or the token the CLI keeps in the keychain), or a token pasted in Settings or exported as `APIFY_TOKEN`, against the `/v2/users/me/limits` endpoint the Console's Billing page draws from. Shows this cycle's platform spend against the account's monthly usage limit. See [Apify details](docs/providers/apify.md). |
-| **Kilo** | official | The Kilo CLI's own sign-in (`~/.local/share/kilo/auth.json`), against the same coding-plan quota and balance endpoints the CLI asks. Shows the plan's quota windows and the credit balance. |
-| **Custom endpoints** | provider-reported or manual | Configure OpenAI-compatible, Anthropic Messages, or Google Gemini model discovery. Usage can be entered manually or read from a configured JSON endpoint; successful readings are kept locally as a daily hover graph. |
+| **Claude** | `GET https://api.anthropic.com/api/oauth/usage` with the token Claude Code keeps in `~/.claude/.credentials.json` | Session / weekly windows, 429 back-off with a persisted deadline, stale readings dimmed with their age. Renews that token by running the standalone `claude -p` shortly before it expires (Claude Code inside the desktop app never writes this file), and never sends an expired one. A thin arc spins inside the ring while a Claude session is working, and pulses amber when one is waiting on you (Claude Code hooks + transcript watcher, desktop app included). |
+| **Codex** | The local Codex sign-in in `~/.codex/auth.json` (read only, never refreshed), falling back to the newest session snapshot | Live primary/secondary windows (5h + weekly on paid plans, a monthly window on free) while Codex is signed in; Spark and Code review appear on the hover card when Codex reports them; otherwise the last snapshot, marked stale by its own timestamp. |
+| **Cursor** | The editor's own session from `state.vscdb` → `cursor.com/api/usage-summary` | Included usage / API usage / on-demand, reset at billing-cycle end. Nothing to sign into: it borrows the editor's session, so there is only ever one account. |
+| **Grok** | The Grok CLI's own session in `~/.grok/auth.json` (read only, never refreshed) → `cli-chat-proxy.grok.com/v1/billing?format=credits`, the endpoint that CLI's own `/usage` asks | The weekly Grok Build allowance, with the account on the hover card. Only a session minted by `auth.x.ai` is used — the file can also hold a customer IdP token meant for that customer's private proxy. A fresh weekly period reads 0 %, not "unmetered". |
+| **GitHub Copilot** | The GitHub CLI's own session, read only: `GH_TOKEN`/`GITHUB_TOKEN` when set, else `oauth_token` in `%APPDATA%\GitHub CLI\hosts.yml`, else `gh auth token` run hidden (the token may live in Credential Manager) → `api.github.com/copilot_internal/user`, the quota endpoint GitHub's own editors ask | Premium requests on the ring, with chat requests and completions on the hover card; all reset on the first of the month. An `unlimited` quota, or one with no entitlement, draws nothing. The account and plan are named on the card. Sign in with `gh auth login`; Ai-Manager never starts a sign-in itself. |
+| **OpenCode** | OpenCode's own sign-in, read only: the `opencode-go` key in `~/.local/share/opencode/auth.json` → `opencode.ai/zen/go/v1/usage`, or — since OpenCode 1.18 — the OAuth sign-in in `opencode.db` (`credential` table) → `opencode.ai/inference/go/v1/usage` | The Go plan's 5-hour, weekly and monthly windows. A sign-in without a Go plan shows "No OpenCode Go subscription" instead of a ring; Zen pay-as-you-go credit has no balance or usage API, so it is not shown. |
+| **Antigravity** | Official `agy` CLI `/usage` print when installed; otherwise the existing local `language_server` bridge, Google Cloud Code API, or transcript model count | Official four quota rows (Gemini & Claude/GPT 5h/weekly) without running the full IDE. When CLI is absent, falls back to legacy local bridge/API. |
+| **OpenCode Go** | `GET https://opencode.ai/zen/go/v1/usage` | Reads the `opencode-go` key in OpenCode's `auth.json`, or `OPENCODE_APIKEY` when set. The environment key takes precedence. Shows rolling 5-hour, weekly and monthly usage. This is a separate subscription from the Z.ai GLM Coding Plan; its key must not be sent to Z.ai's monitor endpoint. |
 
-Most providers borrow a credential or session from a tool already on your Mac.
-DeepSeek is the explicit browser-login exception: it never reads a browser's
-cookies or credentials, and only makes requests after you choose **Sign in to
-DeepSeek** from Ai-Manager. MiniMax is the same kind of exception — a key you
-paste in Settings, or an explicit WKWebView sign-in. QianwenAI is a third: it
-publishes no usage API and has no key to paste, so that WKWebView session is the
-only way in. None of them opens a browser's cookie store.
+Providers that are not installed simply do not get a cell.
 
-Ollama Cloud accepts an API key in Settings. Apify borrows the `apify login`
-session when there is one and otherwise takes a token pasted in Settings or
-exported as `APIFY_TOKEN`. Switching a provider off stops its usage polling
-and forgets its readings; borrowed accounts stay signed in to the tools that
-own them.
+### Codex quota recovery
 
-**Local Ollama is detected automatically.** Configure its address or stop monitoring in **Settings → Ollama**.
-Each loaded model gets a notch cell; reorder or hide it in **Settings → Accounts**.
-Hover for RAM/VRAM, unload time, context limit and quantization.
+The direct usage endpoint remains the first choice. If it fails, Ai-Manager can
+ask an installed **native** `codex.exe` via the documented
+[`account/rateLimits/read`](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt)
+app-server method before falling back to a rollout snapshot. The desktop's
+`%LOCALAPPDATA%\OpenAI\Codex\bin` installation is checked as well as native CLI
+candidates. No `.cmd`/Node wrapper is launched. The owned process is hidden,
+limited to 20 seconds, and terminated/reaped after the read; no inference or
+login command is sent. Existing HTTP 429 backoff and five-minute polling remain.
 
-For generation speed (**tok/s**) and live **Thinking**, enable **Measure speed and thinking**
-in Settings → Ollama, keep Ai-Manager open and connect through its local relay:
+The main ring/tray selects only core `primary`, never a weekly, Spark or
+code-review replacement. If `primary` is absent the headline stays blank;
+`secondary` remains available to the separate weekly ring. App-server
+multi-bucket replies prefer `codex`. Rollout fallback ignores explicitly different
+bucket ids and reads the latest eight non-archived paths from
+`state_5.sqlite` using a read-only, WAL-aware connection (50 ms busy timeout).
+This finds resumed threads without scanning every session file. If the index
+is unavailable, the original three-date-directory scan remains the fallback;
+old resumed threads cannot be discovered through that scan alone. Missing data is
+not a zero. Percentages retain the existing **used** semantics; this is quota
+utilization, not an exact token count or a model-specific allowance.
 
-```sh
-OLLAMA_HOST=http://127.0.0.1:11435 ollama run gemma4:e4b --think
+Why launch a process at all? A borrowed stored-token HTTP read can fail while
+the installed Codex client can still authenticate. The native client owns its
+managed OAuth lifecycle and can recover live quotas without Ai-Manager copying
+its refresh logic. This is not guaranteed for externally managed credentials
+that require a host app: if it cannot read the quota, the usual stale/missing
+rollout status remains. Unlike the old unconditional wrapper-based path, this
+recovery runs only after HTTP failure, directly owns a native executable, and
+does not use `taskkill` or launch a Node/cmd tree. Ai-Manager sends no login or
+explicit token-refresh request; Codex may perform its own normal managed refresh.
+
+Regression checks: `cargo test --locked` and `node --test test-codex-headline.cjs`
+from the repo root. Tests use synthetic quota fixtures, not account credentials.
+The optional `cargo test --release --locked codex::tests::live_native_quota -- --ignored`
+checks the actual native transport against an already signed-in local client;
+it prints no account credentials or quota values and is not run by CI.
+
+### Claude sign-in
+
+When Claude is signed out, its card offers **Sign in**, which opens the standalone
+Claude Code CLI's browser login (`claude auth login --claudeai`). It is offered on
+the default `~/.claude` account only, since that is the one the CLI signs in.
+Finish in the browser; if it
+displays a code, paste it in the opened terminal, not in Ai-Manager. The card
+refreshes after the CLI exits without restarting the widget. The native CLI must
+already be installed; missing CLI, cancellation and launch errors are shown.
+
+This explicit action shares a busy guard with automatic token renewal. Only the
+CLI handles OAuth and writes credentials; Ai-Manager does not receive login codes
+or expose tokens through UI IPC. The interactive child has a 15-minute timeout.
+To read Claude again, click its ring or choose **Refresh now** from the notch's
+right-click menu. HTTP 403 is reported as an access/network refusal rather than claiming
+that a still-valid login has expired. Existing automatic renewal is unchanged.
+
+### Antigravity
+
+- **Official CLI (Preferred)**: When the official Antigravity CLI (`agy.exe`) is installed (`%LOCALAPPDATA%\agy\bin\agy.exe` or on `PATH`) and signed in, Ai-Manager reads official quotas directly without keeping the full IDE running.
+- **Execution**: Runs the official CLI in a hidden Windows pseudo-console, with a 70-second timeout and cleanup of its process tree. It does not need PowerShell scripts or a separate service.
+- **Refresh**: Checks at startup and on hover/explicit request when readings are at least five minutes old; failed attempts are also limited to once per five minutes. It keeps previous readings on failure, without switching to legacy APIs. The CLI is not launched periodically while idle.
+- **Fallback**: When the official CLI is not installed, Ai-Manager preserves the legacy local bridge (`language_server`), Credential Manager, and transcript model turn counting to maintain compatibility with existing installations.
+- **Official CLI Reference**: Standalone `/usage` printing is described in the [official Antigravity CLI documentation](https://www.antigravity.google/docs/cli/headless). Note: no categorical Terms of Service guarantee is made.
+
+Restart Ai-Manager after installing or removing `agy`: the source is selected at startup.
+The CLI's text report is parsed defensively; an unsupported format or failed sign-in
+shows an error or the last reading marked stale. Ai-Manager does not automate sign-in.
+
+## Install / build
+
+There are no public installers. To download, build and install it in one go (needs git,
+the GitHub CLI signed in to an account with access to this repo, and Rust), run in PowerShell:
+
+```powershell
+gh api repos/adaalif/ai-manager/contents/scripts/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
 ```
 
-Speed updates after completed native Ollama responses; thinking requires streamed
-reasoning. Direct requests to Ollama's default port (`11434`) only provide model
-detection. Monitoring never initiates inference or saves prompts, reasoning or replies.
-See [Ollama details](docs/plans/2026-09-07-local-llm-provider-plan.md).
+Run it again to update. It installs to `%LOCALAPPDATA%\Programs\Ai-Manager`, adds a Start menu
+entry, and leaves your settings alone.
 
-**Local LM Studio is detected automatically** on the port LM Studio's own settings name
-(1234 unless you moved it). Configure the address or stop monitoring in **Settings → LM Studio**.
-Each loaded language model gets a notch cell; embedding models are left out. The cell shows the
-last response's **tok/s** and its ring fills with how much of the loaded **context** the last
-request used. A white arc turns while the model reads a prompt or generates, and becomes a ring
-of dots when requests are queued behind it. Hover for context used, tokens and requests today,
-reasoning share, speculative-decoding acceptance, model size, quantization and context limit.
+To build by hand — prerequisites: Rust (MSVC toolchain), WebView2 runtime (ships with Windows 11).
 
-Nothing has to be pointed at Ai-Manager: what a model is doing comes from LM Studio's SDK socket
-on the same port (the one `lms ps` uses), and speed and tokens come from `~/.lmstudio/server-logs`,
-which LM Studio writes for every request from any client. Only counts and timings are read from
-those files, never a prompt or a reply. Responses through the OpenAI-compatible endpoint carry no
-clock, so their speed is timed from the generating phase and marked `~`. If LM Studio's server is
-set to require an API token, paste one in Settings → LM Studio (or export `LM_API_TOKEN`); without
-one, requests are sent with no Authorization header at all.
-See [LM Studio details](docs/plans/2026-09-10-lm-studio-provider-plan.md).
-
-Settings lists the connected providers in the order the notch draws them, and
-you can drag one by its handle to move it. The order is remembered across
-launches. A provider you switch back on joins the end of that list rather than
-reclaiming an older position, so nothing you cannot currently see jumps ahead
-of something you placed deliberately.
-
-It also answers **"is it still working?"** — a thin arc spins inside a
-provider's ring while a session is busy, and becomes a pulsing amber ring when
-one is blocked waiting on you. Hover for every live session by name, where it
-is running, and what it wants.
-
-Two Claude Code logins are two rings. Anyone who keeps a work account apart with
-`CLAUDE_CONFIG_DIR=~/.claude-work claude` gets a **Claude (work)** ring beside the
-personal one, with its own limits, its own sessions and its own row in Settings.
-Any `~/.claude-<slug>` directory Claude Code has run against is found at launch;
-the default `~/.claude` always comes first, the rest in alphabetical order, so the
-rings never swap places.
-
-Codex accounts work the same way: `~/.codex` stays the **Codex** ring, and each
-used `~/.codex-<slug>` directory adds a **Codex (slug)** ring with its own limits,
-activity and Settings row. Profiles are discovered at launch, default first,
-then alphabetically. To connect a second account, sign in through Codex CLI
-using a separate home directory:
-
-```sh
-mkdir -p "$HOME/.codex-work"
-CODEX_HOME="$HOME/.codex-work" codex -c 'cli_auth_credentials_store="file"' login
+```powershell
+# from the repo root
+cargo build --release
+.\target\release\ai-manager.exe          # pill appears on the right edge of the primary monitor
+.\target\release\ai-manager.exe doctor   # self-diagnosis: credentials, data sources, icons, hooks
 ```
 
-Choose the second account during sign-in, then restart Ai-Manager. Run that
-account's CLI sessions with `CODEX_HOME="$HOME/.codex-work" codex` as well.
-Repeat with another name, such as `.codex-personal`, for more accounts.
-Settings shows each account's email and profile directory; each ring can be
-reordered or switched off independently. Switching one off forgets only its
-Ai-Manager readings and leaves the Codex login intact.
+To build the installer the way the Windows Package workflow does:
 
-Ai-Manager reads each profile's `auth.json`; keychain-only or API-key-only
-logins cannot provide these ChatGPT account limits. It never copies, refreshes
-or writes Codex credentials. If a login expires, use that profile's Codex CLI
-to renew it. Directories outside the `~/.codex-<slug>` convention are not
-discovered automatically, and adding a profile requires restarting Ai-Manager,
-just as it does for Claude.
-
-## When a session ends
-
-The notch opens itself for five seconds when an agent stops working, or stops
-to ask you something, and sounds the system alert. Clicking it while it is open
-brings that session's application to the front.
-
-The app, not the tab. A session publishes its pid and nothing else — no window,
-no tab, no tty — so the app is found by walking up the process tree from the
-agent to whatever launched it. Choosing the *tab* inside that app needs the
-terminal's own scripting interface, and there is no general one: Terminal.app
-and iTerm2 can match a tab by tty, Warp and Ghostty publish no scripting
-dictionary at all. So the app is raised for everybody and the tooltip names the
-session, which leaves the last hop one keystroke rather than working for two
-terminals and silently doing nothing in a third.
-
-Both halves switch off separately in Settings, because they fail differently:
-the peek is no use behind a full-screen window, and the sound is no use in a
-meeting. Each of the two events — finished, and waiting on you — picks its own
-sound there, with a preview button beside it.
-
-The sound is played as a file on the ordinary output rather than handed to
-`NSSound` as a system alert. A system alert goes through the interface
-sound-effects channel, which System Settings → Sound can switch off — and on a
-Mac where it is off, `NSSound.play()` reports success and nothing is heard.
-
-Only *leaving* busy counts. A question being answered is not a piece of work
-ending, and a session whose file disappears mid-turn — which is what quitting
-Claude Code looks like — is not announced at all, since there is no window left
-to jump to. Nothing is announced from the first reading either: every session
-already running at launch arrives with no history, and treating that as a
-transition would ring once per open window on every start.
-
-## Alerts
-
-A provider's headline limit crossing **80%** — and reaching **100%** —
-becomes a system notification: once per crossing, never repeated while it
-stays crossed, and again only after the window has genuinely rolled over.
-Each provider can be muted from its own row in Settings, and macOS permission
-is asked on the first real alert rather than at launch.
-
-## Placement
-
-The notch lives on any of the four screen edges. Right and left keep a
-vertical column; top and bottom lay the readings out side by side. It pins
-itself to the physical screen edge, so showing or hiding the Dock does not
-move it. Hold Option and drag to move along the selected edge; each edge
-remembers its position. On a Mac with a hardware notch, the top
-placement takes its exact shape, so the two read as one rather than as a bar
-parked underneath it.
-
-Along that edge it sits wherever you put it: hold ⌥ and drag the notch to
-slide it, and each edge remembers where you left it, so moving the notch to the
-top and back does not lose the place you chose on the right. **Recentre** in
-Settings → Appearance puts the current edge back in the middle.
-
-**Size** in the same place draws the whole notch — rings, text, tooltip and all
-— smaller or larger. Medium is the size it was designed at.
-
-At rest it is a small pill on the screen edge that unfolds when the pointer
-reaches it — configurable in Settings to always show, or to hide entirely.
-Settings live in an orb below the notch: an arc at rest, a gear on hover.
-
-Clicking the notch while it is open keeps it open, so it stays put while you
-read it; clicking it again lets it fold away as usual. That click has to land
-on the body itself, since a ring takes its own click to refetch that provider
-and the orb takes one to open Settings. Right-clicking offers the same thing as
-a menu item, **Keep open**, ticked while the notch is being held open, which is
-the surer way to release one that was kept open by accident. The item is
-greyed out when Settings says Always show, because that choice is Settings' to
-change.
-
-In Settings → Appearance → Reset time, choose **Time remaining** for countdowns
-like "Resets in 3 Days 3h". **Reset date** keeps the reset date and time, with
-minutes shown when less than an hour remains.
-
-Appearance also carries the ring's accent colour. The device accent is the
-default; fixed presets are available for pink, red, orange, yellow, green,
-teal, blue, indigo, purple and off-white.
-
-The app itself can show a Dock icon, a menu bar item, or neither. The menu bar
-item is the Ai-Manager icon until you switch on **Show limit information in
-menu bar** under Settings → Appearance → App; then it shows the five-hour
-limits of the providers you choose there — the provider's mark, the share used
-and the time until it resets, like `72% · 2h 18m | 41% · 4h 05m`. Choosing
-what the bar shows never changes what Ai-Manager reads, and with nothing chosen
-the icon comes back. Its menu has the full readings either way.
-
-## Updates
-
-None. Builds are private and never update themselves from a server;
-rebuild from source to get a newer version.
-
-## Building
-
-```sh
-brew install xcodegen create-dmg   # once
-make run                # generate, build, launch a Debug build
-make test               # unit tests
+```powershell
+# the hook gets its own target dir, so the bundler never copies it onto itself
+cargo build --release --locked -p ai-manager-hook --target-dir target/hook
+cd ai-manager
+npx @tauri-apps/cli@2 build --config tauri.bundle.conf.json
+# → ..\target\release\bundle\nsis\AiManager_<version>_x64-setup.exe
 ```
 
-No signing identity is required for either. `make release` — which archives,
-notarizes, and produces a signed auto-update feed — needs a Developer ID
-certificate and an App Store Connect notary profile, and is only ever run by
-the maintainer to cut an official release. See
-[CONTRIBUTING.md](CONTRIBUTING.md). CI runs the same unit tests unsigned via
-`make test-ci`.
+### Linux
 
-A Debug build is ad-hoc signed, which means it has no stable code identity, so
-macOS cannot match it to a saved keychain "Always Allow" — the prompt to read a
-tool's token returns on every launch. To make the grant stick during local
-development, sign the built app with a stable self-signed identity:
+The same crate builds and runs on Linux; the Win32 pieces already sat behind `cfg(windows)`,
+and the rest of the port is portable Rust. Prerequisites on a Debian or Ubuntu machine:
 
 ```sh
-Scripts/sign-local.sh   # signs /Applications/Ai-Manager.app (pass a path to override)
+sudo apt install build-essential pkg-config libssl-dev libwebkit2gtk-4.1-dev \
+                 libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+cargo build --release -p ai-manager
+./scripts/run-linux.sh          # pill appears on the right edge
+./scripts/run-linux.sh doctor   # self-diagnosis, same as on Windows
 ```
 
-It creates a reusable `Ai-Manager Local Signing` certificate in your login
-keychain (no Apple Developer account needed) and re-signs the app. Grant the
-keychain prompt once more after signing; it will not ask again.
+`scripts/run-linux.sh` exists because of two things the desktop does not do by itself.
+**Wayland does not let a client place its own windows**, and the notch has to sit on a
+screen edge, so it runs as an X11 client under XWayland. And a shell started from a
+**snap** — Ubuntu's VS Code, for one — exports that snap's library paths, which make a
+binary built against the system glibc die with
+`symbol lookup error: … undefined symbol: __libc_pthread_init`. The script unsets those
+and sets `GDK_BACKEND=x11`; launched from the desktop rather than such a shell, the
+binary runs on its own.
 
-Run with `AI_MANAGER_DEMO=1` to see fixed sample data instead of live readings.
+The tray needs GNOME's *AppIndicator Support* extension, as every Tauri tray does there.
+The data folder follows the XDG directories (`~/.config/ai-manager`), and providers are
+found at their Linux paths: `~/.claude`, `~/.codex`, `~/.grok`,
+`~/.config/Cursor/User/globalStorage/state.vscdb`.
 
-## Architecture
+What does not work yet, and degrades quietly rather than misbehaving:
 
-Every provider implements `UsageProvider` (`Sources/Providers/`) and declares
-its own `Fidelity` — `.official`, `.derived`, or `.manual` — so the UI never
-presents a guess as if a vendor had published it. `UsageStore`
-(`Sources/Model/`) polls them on a timer, keeps the last good reading across
-launches, and degrades every failure to a visible status rather than a
-made-up percentage.
+| Feature | Why |
+|---|---|
+| Dragging the pill along its edge | Follows the mouse through `GetAsyncKeyState`; needs an X11 pointer query. |
+| Seen-clears-it, and jumping back to the terminal | `focus.rs` reads the foreground window and the process tree through Toolhelp; `/proc` plus a window-manager call would replace it. |
+| Antigravity | Its credential is read from the Windows Credential Manager; libsecret is the equivalent. |
+| App icons taken from an installed `.exe` | The built-in provider SVGs cover every provider, so little is lost. |
 
-The notch itself works in one-dimensional **stack space** (`along`/`across`)
-regardless of which screen edge it's on; `NotchPlacement` is the only place
-that maps that back onto real screen coordinates. `NotchLayout` holds every
-measurement, quoted from `docs/design/frame-124-hover-tooltip.png` so the
-layout can be checked against the design frame directly.
+Everything else — all providers, the hover card, the settings window, the tray menu, hooks,
+start at sign-in (an XDG autostart entry rather than a registry value) — behaves as it does
+on Windows.
 
-- Design spec: [`docs/specs/2026-08-28-usage-notch-design.md`](docs/specs/2026-08-28-usage-notch-design.md)
-- Implementation history: [`TASKS.md`](TASKS.md)
+Tray menu: the readings themselves — a line per provider with its headline figure, and under it
+one line per limit window — then **Refresh all**, **Settings…** and **Quit Ai-Manager**. Clicking a
+provider's line re-reads that provider. Everything else is in the settings window: which rings the
+notch shows, its size, the weekly ring, which screen edge it sits on and which screen,
+start with Windows, the language, Claude Code hooks, reset
+position, and the data folder (`%APPDATA%\ai-manager` — logs, persisted readings, icon overrides).
 
-## The honest caveat
+Notch: clicking a ring re-reads that provider. Right-clicking the notch or its card
+offers **Refresh now**, the provider's usage page (**Open claude.ai**, **Open chatgpt.com**, …) and
+**Quit Ai-Manager**. Neither click, nor the tray, asks Claude again while its rate-limit wait runs.
 
-No vendor publishes a clean "your session limit is N% used" API for any of
-these tools. Each adapter reads whatever the owning app itself reads from —
-an internal endpoint, a local database, a language server's own RPC — and
-those can change without notice. Every adapter's response shape is pinned by
-tests, and every failure degrades to a visible status (`stale`, `needsAuth`,
-`error`) rather than an invented number.
+### Where the notch sits
 
-**Claude Desktop's cache:** Claude Desktop is a Chromium app, so the usage
-response its own panel draws is written to an HTTP cache file under
-`~/Library/Application Support/Claude`. Reading it is how the ring stays right
-for people who work in Desktop rather than in the terminal — the two Claude
-Code paths below both go dark when `claude "/usage"` stops printing the windows
-and the keychain token has not been re-minted since Claude Code last ran, which
-is an ordinary state for a Desktop user. It is strictly read-only, and narrow:
-only entries whose cached URL is *this account's* `/api/organizations/<id>/usage`
-are opened at all, matched on the organization Claude Code records for the
-profile, so one account's numbers can never land on another's ring. No token, no
-cookie, no credential and no request to Anthropic are involved. A snapshot older
-than 30 minutes is not shown as live — it drops through to the paths below, and
-the last good reading ages and dims as any other would. Two minutes, not thirty,
-while a session is running or while you are looking at the ring: that is when
-the figure is moving, and a cache is the one source that cannot tell you it
-has. Chromium's cache format
-is private and may change; if it does, the source goes quiet and the existing
-ones take over. Bodies are `content-encoding: zstd` and macOS ships no decoder,
-so a decode-only build of Zstandard is vendored under
-[`Sources/Vendor/zstd`](Sources/Vendor/zstd) (BSD-3-Clause).
+The notch pins to one edge of one screen. Six dots come out beside the settings button while the
+pointer is on it: hold them (or hold Alt anywhere on the notch) and drag, and the notch follows the
+pointer round the screen's border — along an edge, and round each corner — and lands where it is
+let go.
+**Appearance → Edge** picks left, right, top or bottom: it stands upright on the left and right
+edges with the hover card opening sideways, and lies flat on the top and bottom ones with the card
+opening below or above. **Appearance → Screen** appears once more than one monitor is attached.
 
-**Claude's unused resets (macOS):** the hover card shows the remaining resets
-and their expiry, using the same section as Codex. Open **Settings → Usage**
-in Claude Desktop for the same account to populate its reset data. That data
-is read from Desktop's usage cache and is labeled as cached with the time it
-was last observed. Ordinary usage refreshes do not re-date it; old usage
-windows still fall back to the CLI/OAuth sources after 30 minutes. Used, paused, future,
-and expired grants are hidden. There is no built-in promotion date or assumed
-entitlement. As checked on September 23, 2026, the OAuth usage endpoint does
-not expose the grants (`ineligible_reason: surface`), so a CLI/OAuth-only
-setup cannot show them yet. Ai-Manager displays availability only; redeem a
-reset in Claude. See [the provider notes](docs/providers/claude-resets.md).
+Carried well onto another monitor, 150 px past the one it is on, the notch goes there, across a
+change of DPI between them too. The choice is stored as `notch_edge`, `notch_monitor` (the device
+name, e.g. `\\.\DISPLAY2`) and `notch_along` (where along each edge, 0–1) in `config.json`. A monitor that is no longer
+attached falls back to the primary one, so unplugging a screen cannot strand the notch off-screen;
+**Recentre** centres it on the edge it is on, or on the primary screen's right-hand edge when the screen it was on is gone.
 
-**Keychain:** Claude's readings do not use it where Claude Code is installed.
-Claude Code files a *new* keychain item on every token rotation, and the new
-item's access list does not carry this app, so an "Always Allow" granted
-against the old one stops working about an hour later — asking `claude` itself
-avoids the question entirely. Where the keychain is still the source (no
-Claude Code on the machine, or Antigravity), the app is signed with a stable
-Developer ID identity so a grant survives rebuilds, and the secret is read
-only when the owning app has actually changed it — checked via the item's
-modification date, which isn't behind the same access prompt as the
-credential — so a valid grant does not mean a prompt on every poll.
+Folded (**Appearance → Show → Show on hover**), the notch rests as a small pill at the edge, in
+**Theme**'s colour, with an edge that shows even against a backdrop of that colour.
+**Appearance → Adaptive pill**, off unless switched on, makes it follow what is behind it instead:
+light over a dark backdrop, black over a light one, the way the iPhone's home indicator does. To tell
+which, Ai-Manager reads a thin strip of the screen beside the pill twice a second while it is folded,
+and keeps only its average brightness, which is never stored or sent. With the switch off, the notch
+open, or Show set to Always show, nothing is read.
 
-**Rate limits:** Claude's endpoint returns 429 if polled too hard, with an
-unhelpful `Retry-After: 0`. The back-off treats that as a floor-raiser only —
-60s, doubling per consecutive 429, capped at 15 minutes — and the deadline is
-persisted, so relaunching during a penalty waits instead of spending an
-attempt on it. Polling drops to every 5 minutes when nothing is running, and
-right-clicking the notch offers **Refresh now**.
+### Icons
 
-**How current the figures are.** Your usage cannot move while nothing is
-running, so the schedule spends its budget where the number actually changes:
-every 30 seconds while a session is working, every 5 minutes while none is, and
-at once when a limit window rolls over. Three things outside the schedule also
-ask, because each one is a moment the figure is either about to change or about
-to be read: a session *stopping* (one reading, so the total you just earned is
-on the bar within a second or two rather than up to five minutes later),
-opening the menu bar item's menu, and putting the pointer on a ring. The last
-two are spaced — hovering four rings in four seconds is one reading, not four.
+Provider marks are the SVGs from [`@lobehub/icons-static-svg`](https://github.com/lobehub/lobe-icons)
+(MIT), embedded unmodified — see `ai-manager/glyphs/NOTICE.md`. Drop your own
+`claude|codex|cursor|gemini.svg` (or `.png`) into `%APPDATA%\ai-manager\glyphs\` to override.
+The marks remain the trademarks of their owners.
 
-The reset countdown is drawn against a clock, not against the last reading, so
-it is right to the second whether or not anything has been fetched: the card
-counts down once a second while it is open, and the menu bar item counts the
-last minute of a window down in seconds.
+### Translations
 
-Even at its freshest, a *percentage* is something that was read at some point
-rather than a live wire: a look re-reads it, and what comes back may still be a
-figure the provider itself published moments earlier. **Settings › General ›
-Readings › Ask the provider every time you look** takes that as far as it goes —
-a look then refuses every reading a provider is holding, however new, and asks
-the provider. It is off by default because it is not strictly better: it spends
-a request each time, and a provider that rate-limits answers one request too
-many by refusing the next few minutes of them, which leaves the figure older
-than the cache would have. Worth turning on to check Ai-Manager against a
-provider's own dashboard, and worth turning off again after. **Refresh now** and
-a click on a ring always ask this way — those are somebody's own clicks, not a
-schedule.
+Three surfaces draw their own text, so each keeps its own table:
 
-**Logs:** the app has no window, so anything worth diagnosing goes to the
-unified log.
+| Surface | Table | Languages today |
+|---|---|---|
+| Tray menu | `ai-manager/src/i18n.rs` (`tr`), `ai-manager/src/traymenu.rs` (`label`) | en · ru · zh · ja · ko · uk |
+| Hover card | `ai-manager/ui/notch.html` (`TEXT`, `PATTERNS`, `UI`) | en · ru · zh |
+| Settings window | `ai-manager/ui/settings.html` (`STATIC_TEXT`, `STATUS_TEXT`) | en · ru · zh · ja · ko |
 
-```sh
-/usr/bin/log stream --predicate 'subsystem == "com.adaalif.ai-manager"' --level debug
+Help is welcome on the gaps, which fall back to English rather than breaking anything:
+
+- the hover card has no Japanese, Korean or Ukrainian;
+- the settings window has no Ukrainian, although the tray menu and the language picker have had it
+  since Ukrainian was added;
+- Korean has none of the window names — `Current session`, `Weekly limit`, `Monthly limit`,
+  `5-hour Limit`, `Included usage`, `API usage`.
+
+Keys are the exact English string. One catalog feeding all three tables is the intended fix; until then a test in `traymenu.rs`
+fails if the menu and the card stop naming the same window.
+
+## Layout
+
+```
+.
+├── ai-manager/          the Windows app (pill, hover card, settings, providers)
+└── ai-manager-hook/     tiny helper Claude Code calls to report session events
 ```
 
-## Contributing
+A pull request that touches this tree is built and tested; the check is skipped
+inside forks until the pull request is opened here.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Credits
+
+Ported from [Im-Midi/codenotch-windows](https://github.com/Im-Midi/codenotch-windows).
+Session detection originated in [Im-Midi/Pac-Man](https://github.com/Im-Midi/Pac-Man) (MIT).
 
 ## License
 
-[MIT](LICENSE) © 2026 adaalif. Based on [Codenotch](https://github.com/vinzdg/codenotch)
-by Vinz, also MIT.
+MIT — see `LICENSE`.

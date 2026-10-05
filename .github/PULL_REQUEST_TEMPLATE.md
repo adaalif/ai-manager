@@ -8,7 +8,7 @@
 ## Test Plan
 <!-- Describe the tests you ran to verify your changes. -->
 - [ ] Run test suite (`make test-ci`)
-- [ ] Tested on macOS (version: )
+- [ ] Tested on Windows (version: )
 - [ ] UI / Notch interactions verified (if applicable)
 
 ## Screenshots / Screen Recordings
