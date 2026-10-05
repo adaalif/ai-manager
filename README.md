@@ -89,11 +89,10 @@ shows an error or the last reading marked stale. Ai-Manager does not automate si
 
 ## Install / build
 
-There are no public installers. To download, build and install it in one go (needs git,
-the GitHub CLI signed in to an account with access to this repo, and Rust), run in PowerShell:
+In PowerShell:
 
 ```powershell
-gh api repos/adaalif/ai-manager/contents/scripts/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
+irm https://raw.githubusercontent.com/adaalif/ai-manager/main/scripts/install.ps1 | iex
 ```
 
 Run it again to update. It installs to `%LOCALAPPDATA%\Programs\Ai-Manager`, adds a Start menu
