@@ -42,10 +42,13 @@ pub fn show_notch_menu(window: Window, provider: Option<String>) -> Result<(), S
         .checked(crate::keeps_open(app))
         .build(app)
         .map_err(err)?;
+    let hide = MenuItemBuilder::with_id(format!("{PREFIX}hide"), tr(&lang, "hide_notch"))
+        .build(app)
+        .map_err(err)?;
     let quit = MenuItemBuilder::with_id(format!("{PREFIX}quit"), tr(&lang, "quit_app"))
         .build(app)
         .map_err(err)?;
-    let menu = menu.separator().item(&keep_open).separator().item(&quit).build().map_err(err)?;
+    let menu = menu.separator().item(&keep_open).item(&hide).separator().item(&quit).build().map_err(err)?;
     #[cfg(windows)]
     let before = foreground();
     // Returns once the menu has closed
@@ -89,6 +92,7 @@ fn handle(app: &AppHandle, id: &str) {
     match item {
         "refresh" => crate::refresh_all(app),
         "keep_open" => crate::toggle_keep_open(app),
+        "hide" => crate::toggle_notch_visible(app),
         "quit" => app.exit(0),
         _ => {}
     }

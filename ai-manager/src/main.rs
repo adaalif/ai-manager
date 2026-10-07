@@ -1392,6 +1392,27 @@ pub fn toggle_keep_open(app: &AppHandle) {
     apply_visibility(app);
 }
 
+/// The tray's Show notch and the notch menu's Hide notch: Settings' Show → Hide, one click away.
+/// The tray icon comes back with a hidden notch, as `set_ui_flags` keeps it, so there is a way back.
+pub fn toggle_notch_visible(app: &AppHandle) {
+    {
+        let st = app.state::<AppState>();
+        let mut c = st.cfg.lock().unwrap();
+        c.notch_visible = !c.notch_visible;
+        if !c.notch_visible {
+            c.tray_visible = true;
+        }
+        config::save(&c);
+    }
+    apply_visibility(app);
+}
+
+pub fn notch_shown(app: &AppHandle) -> bool {
+    let st = app.state::<AppState>();
+    let c = st.cfg.lock().unwrap();
+    c.notch_visible
+}
+
 pub fn keeps_open(app: &AppHandle) -> bool {
     let st = app.state::<AppState>();
     let c = st.cfg.lock().unwrap();
@@ -1419,6 +1440,8 @@ pub fn apply_visibility(app: &AppHandle) {
     if let Some(t) = app.tray_by_id("main") {
         let _ = t.set_visible(tray_on);
     }
+    // Its Show notch tick follows a change made from Settings or the notch menu
+    tray::refresh_menu(app);
 }
 
 // ---------------- settings that used to live in the tray menu ----------------

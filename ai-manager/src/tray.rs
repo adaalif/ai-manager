@@ -1,6 +1,6 @@
 use crate::i18n::tr;
 use crate::traymenu;
-use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder};
+use tauri::menu::{CheckMenuItemBuilder, Menu, MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, Wry};
 
@@ -54,10 +54,15 @@ fn menu_lines(app: &AppHandle, lang: &str) -> Vec<(String, String, bool)> {
 
 pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let lang = language(app);
-    build_menu_from(app, &lang, &menu_lines(app, &lang))
+    build_menu_from(app, &lang, &menu_lines(app, &lang), crate::notch_shown(app))
 }
 
-fn build_menu_from(app: &AppHandle, lang: &str, lines: &[(String, String, bool)]) -> tauri::Result<Menu<Wry>> {
+fn build_menu_from(
+    app: &AppHandle,
+    lang: &str,
+    lines: &[(String, String, bool)],
+    notch_shown: bool,
+) -> tauri::Result<Menu<Wry>> {
     let lang = lang.to_string();
     let mut items: Vec<tauri::menu::MenuItem<Wry>> = Vec::new();
     for (id, text, enabled) in lines {
@@ -71,6 +76,9 @@ fn build_menu_from(app: &AppHandle, lang: &str, lines: &[(String, String, bool)]
         );
     }
     let refresh = MenuItemBuilder::with_id("refresh", tr(&lang, "refresh_all")).build(app)?;
+    let show_notch = CheckMenuItemBuilder::with_id("show_notch", tr(&lang, "show_notch"))
+        .checked(notch_shown)
+        .build(app)?;
     let settings = MenuItemBuilder::with_id("settings", tr(&lang, "settings")).build(app)?;
     let quit = MenuItemBuilder::with_id("quit", tr(&lang, "quit_app")).build(app)?;
     let mut menu = MenuBuilder::new(app);
@@ -79,6 +87,7 @@ fn build_menu_from(app: &AppHandle, lang: &str, lines: &[(String, String, bool)]
     }
     menu.separator()
         .item(&refresh)
+        .item(&show_notch)
         .item(&settings)
         .separator()
         .item(&quit)
@@ -124,7 +133,7 @@ fn tooltip(app: &AppHandle) -> String {
 /// click handlers already run on the main thread, but the readings poller and the settings window
 /// do not, so the hop is done here once rather than being remembered at every call site.
 /// What the menu last showed, so an unchanged refresh leaves it alone.
-static SHOWN: std::sync::Mutex<Option<(String, Vec<(String, String, bool)>)>> = std::sync::Mutex::new(None);
+static SHOWN: std::sync::Mutex<Option<(String, bool, Vec<(String, String, bool)>)>> = std::sync::Mutex::new(None);
 
 /// Swaps the menu only when a line of it would read differently. `set_menu` replaces the menu the
 /// user may have open this moment — the refresh runs on the main thread, which the open popup's
@@ -136,13 +145,14 @@ pub fn refresh_menu(app: &AppHandle) {
         if let Some(tray) = handle.tray_by_id("main") {
             let lang = language(&handle);
             let lines = menu_lines(&handle, &lang);
-            let key = (lang.clone(), lines.clone());
+            let notch_shown = crate::notch_shown(&handle);
+            let key = (lang.clone(), notch_shown, lines.clone());
             if SHOWN.lock().unwrap().as_ref() == Some(&key) {
                 // A tooltip can change without a line changing, and setting it closes nothing.
                 let _ = tray.set_tooltip(Some(&tooltip(&handle)));
                 return;
             }
-            match build_menu_from(&handle, &lang, &lines) {
+            match build_menu_from(&handle, &lang, &lines, notch_shown) {
                 Ok(menu) => {
                     let _ = tray.set_menu(Some(menu));
                     let _ = tray.set_tooltip(Some(&tooltip(&handle)));
@@ -163,6 +173,7 @@ fn handle(app: &AppHandle, id: &str) {
     }
     match id {
         "refresh" => crate::refresh_all(app),
+        "show_notch" => crate::toggle_notch_visible(app),
         "settings" => crate::settings_window::open(app),
         "quit" => app.exit(0),
         _ => {}
